@@ -19,7 +19,7 @@ g++ -g /usr/lib64/libopencv_core.so.2.4 /usr/lib64/libopencv_highgui.so.2.4 src/
 - Or add the following to your `~/.bashrc`:
 
 ```bash
-opencv_g++ () { g++ -g /usr/lib64/libopencv_core.so.2.4 /usr/lib64/libopencv_highgui.so.2.4 src/"$@".cpp -o build/"$@"; }
+opencv_g++ () { g++ -g /usr/lib64/libopencv_core.so.2.4 /usr/lib64/libopencv_highgui.so.2.4 /usr/lib64/libopencv_imgproc.so.2.4 src/"$@".cpp -o build/"$@"; }
 opencv_run () { ./build/"$@"; }
 alias opencv_clean='rm -r build && mkdir build'
 ```
