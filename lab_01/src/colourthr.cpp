@@ -15,10 +15,10 @@
 
 using namespace cv;
 
-int main() { 
+int main() {
 
   // Read image from file
-  Mat image = imread("mandrillRGB.jpg", 1);
+  Mat image = imread("resources/mandrillRGB.jpg", 1);
 
   // Threshold by looping through all pixels
   for(int y=0; y<image.rows; y++) {

@@ -25,7 +25,7 @@ int main() {
 		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255), 1, CV_AA);
 
   //save image to file
-  imwrite("../images/myimage.jpg", image);
+  imwrite("out/myimage.jpg", image);
 
   //construct a window for image display
   namedWindow("Display window", CV_WINDOW_AUTOSIZE);

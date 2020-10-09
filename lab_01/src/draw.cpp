@@ -15,7 +15,7 @@
 
 using namespace cv;
 
-int main() { 
+int main() {
 
   //create a red 256x256, 8bit, 3channel BGR image in a matrix container
   Mat image(256, 256, CV_8UC3, Scalar(0, 0, 255));
@@ -27,16 +27,16 @@ int main() {
   //draw blue line under text
   line(image, Point(74, 90), Point(190, 90), cvScalar(255, 0, 0),2);
 
-  //draw a green smile 
-  ellipse(image, Point(130, 180), Size(25,25), 180, 180, 360,     cvScalar(0, 255, 0), 2);
+  //draw a green smile
+  ellipse(image, Point(130, 180), Size(25,25), 180, 180, 360,    cvScalar(0, 255, 0), 2);
   circle(image, Point(130, 180), 50, cvScalar(0, 255, 0), 2);
   circle(image, Point(110, 160), 5, cvScalar(0, 255, 0), 2);
   circle(image, Point(150, 160), 5, cvScalar(0, 255, 0), 2);
 
   //save image to file
-  imwrite("myimage.jpg", image);
+  imwrite("out/myimage.jpg", image);
 
-  //free memory occupied by image 
+  //free memory occupied by image
   image.release();
 
   return 0;
