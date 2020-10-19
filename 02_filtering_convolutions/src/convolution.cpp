@@ -11,17 +11,22 @@ int main() {
 	Mat image;
 	image = imread("resources/mandrill.jpg", CV_LOAD_IMAGE_UNCHANGED);
 
-	// define kernel size
-	const int size = 3;
+	int kernel_size;
+	std::cout << "\nPlease enter kernel size: ";
+  	std::cin >> kernel_size;
+	std::cout << "..." << std::endl;
 
-	// low pass filter
-	double k_v = (double)1/(double)9;
-	double kernel_vals[size][size] = {{k_v, k_v, k_v},
-								  	 {k_v, k_v, k_v},
-									 {k_v, k_v, k_v}};
+	// n*n low pass filter
+	double k_v = (double)1/(double)(kernel_size*kernel_size);
+	double kernel_vals[kernel_size][kernel_size];
+	for (int i=0; i<kernel_size; i++) {
+		for (int j=0; j<kernel_size; j++) {
+			kernel_vals[j][i] = k_v;
+		}
+	}
 
 	// create opencv matrix from values
-	cv::Mat kernel = cv::Mat(size, size, CV_64F, kernel_vals);
+	cv::Mat kernel = cv::Mat(kernel_size, kernel_size, CV_64F, kernel_vals);
 
 	// set kernel radius for convolution
 	const int kernel_r_x = ( kernel.size[0] - 1 ) / 2;
@@ -66,6 +71,8 @@ int main() {
 
 	// write the updated image to file
 	imwrite("out/convolution.jpg", image);
+
+	std::cout << "\nConvolution complete!\n" << std::endl;
 
 	return 0;
 }
