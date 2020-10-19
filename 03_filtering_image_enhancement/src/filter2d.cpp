@@ -55,14 +55,12 @@ int main( int argc, char** argv ) {
 		std::cin >> usr_kernel_size;
 	}
 
-	// if (filter_type == 0) {
 	if (usr_filter.compare("blur") == 0) {
 		Mat carBlurred;
 		GaussianBlur(gray_image, usr_kernel_size, carBlurred);
 		imwrite( "out/blur.jpg", carBlurred );
 	}
 
-	// else if (filter_type == 1) {
 	else if (usr_filter.compare("sharpen") == 0) {
 		Mat carSharpened;
 		const int sharpen_iterations = 1;
@@ -72,7 +70,6 @@ int main( int argc, char** argv ) {
 		imwrite("out/sharpened.jpg", carSharpened);
 	}
 
-	// else if (filter_type == 2) {
 	else if (usr_filter.compare("unsharpen") == 0) {		
 		Mat carUSharpened;
 		UnsharpMask(gray_image, usr_kernel_size, carUSharpened);

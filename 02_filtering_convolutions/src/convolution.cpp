@@ -5,105 +5,67 @@
 
 using namespace cv;
 
-// #define KERNEL_SIZE 3;
-
 int main() {
 
-  int debug=0;
+	// read image in as opencv matrix
+	Mat image;
+	image = imread("resources/mandrill.jpg", CV_LOAD_IMAGE_UNCHANGED);
 
-  // read image in as opencv matrix
-  Mat image;
-  
-  image = imread("resources/mandrill.jpg", CV_LOAD_IMAGE_UNCHANGED);
-  Mat new_image = image;
+	// define kernel size
+	const int size = 3;
 
-  float k_v = (float)1/(float)9;
+	// low pass filter
+	double k_v = (double)1/(double)9;
+	double kernel_vals[size][size] = {{k_v, k_v, k_v},
+								  	 {k_v, k_v, k_v},
+									 {k_v, k_v, k_v}};
 
-  // printf("\n%.6f", k_v);
+	// create opencv matrix from values
+	cv::Mat kernel = cv::Mat(size, size, CV_64F, kernel_vals);
 
-  // convolution kernel to be applied
-  float conv[3][3] = {{k_v, k_v, k_v},
-                      {k_v, k_v, k_v},
-                      {k_v, k_v, k_v}};
+	// set kernel radius for convolution
+	const int kernel_r_x = ( kernel.size[0] - 1 ) / 2;
+	const int kernel_r_y = ( kernel.size[1] - 1 ) / 2;
 
-  // for each pixel in the matrix (image)
-  for(int y=0; y<image.rows; y++) {
-    for(int x=0; x<image.cols; x++) {
-      
-      if(debug==1){
-        printf("-------------------------\n");
-      }
+	// replicate edge at border to allow edge convolutions
+	cv::Mat padded_image;
+	cv::copyMakeBorder( image, padded_image, 
+						kernel_r_x, kernel_r_x, kernel_r_y,kernel_r_y,
+						cv::BORDER_REPLICATE );
+					
+	// for each pixel in the image
+	for ( int i = 0; i < image.rows; i++ ) {	
+		for( int j = 0; j < image.cols; j++ ) {
 
-      // get the brightness (value) of the pixel
-      uchar pixel = image.at<uchar>(y,x);
+			// sum for matrix multiplication
+			double pixel_sum = 0.0;
 
-      // matrix to be populated with image values to be used in convolution
-      uchar a[3][3] = {{0,0,0},
-                       {0,0,0},
-                       {0,0,0}};
+			// for each kernel value
+			for( int m = -kernel_r_x; m <= kernel_r_x; m++ ) {
+				for( int n = -kernel_r_y; n <= kernel_r_y; n++ ) {
+					
+					// correct image and kernel indices
+					int image_x = i + m + kernel_r_x;
+					int image_y = j + n + kernel_r_y;
+					int kernel_x = m + kernel_r_x;
+					int kernel_y = n + kernel_r_y;
 
-      // for area around pixel, i.e. (-1,-1) to (1,1) for pixel (0,0)
-      for(int j=-1; j<2; j++) {
-        for(int i=-1; i<2; i++) {
-          
-          // position in the matrix
-          int a_y_img = y+j;
-          int a_x_img = x+i;
-          // position in a
-          int a_j = j+1;
-          int a_i = i+1;
+					// get the image pixel and kernel value
+					int pixel_val = (int)padded_image.at<uchar>(image_x, image_y);
+					double kernel_val = kernel.at<double>( kernel_x, kernel_y);
+					
+					// add their product to current sum
+					pixel_sum += pixel_val * kernel_val;
+				}
+			}
 
-          // check the position is on the image
-          if( (a_y_img>=0) && (a_y_img<image.rows) && (a_x_img>=0) && (a_x_img<image.cols) ) {
-            a[a_j][a_i] = image.at<uchar>(a_y_img, a_x_img);
-          } // else keep as 0
-        }
-      }
+			// update the image with new pixel value
+			image.at<uchar>(i,j) = (uchar) pixel_sum;
+		}
+	}
 
-      if(debug==1) {
-        printf("\n{{%d,%d,%d},\n {%d,%d,%d},\n {%d,%d,%d}}\n\n", a[0][0],a[0][1],a[0][2],a[1][0],a[1][1],a[1][2],a[2][0],a[2][1],a[2][2]);
-        printf("{{%.6f,%.6f,%.6f},\n {%.6f,%.6f,%.6f},\n {%.6f,%.6f,%.6f}}\n\n", conv[0][0],conv[0][1],conv[0][2],conv[1][0],conv[1][1],conv[1][2],conv[2][0],conv[2][1],conv[2][2]);
-      }
+	// write the updated image to file
+	imwrite("out/convolution.jpg", image);
 
-      // pixel value after convolution
-      int convd_pixel = 0;
-
-      // for each (j,i) in kernel
-      for(int j=-1; j<2; j++) {
-        for(int i=-1; i<2; i++) {
-          // position in the a matrix
-          int a_j = 1-j;
-          int a_i = 1-i;
-          // position in kernel
-          int conv_j = j+1;
-          int conv_i = i+1;
-
-          convd_pixel += conv[conv_j][conv_i] * a[a_j][a_i];
-
-          if(debug==1) {
-            printf("\nconv[%d][%d] * a[%d][%d]\n", conv_j, conv_i, a_j, a_i);
-
-            printf("%d*%d = %d\n", conv[conv_j][conv_i], a[a_j][a_i], conv[conv_j][conv_i]*a[a_j][a_i]);
-
-            printf("convd_pixel = %d\n", convd_pixel);
-          }
-        }
-      }
-
-      // set new pixel value
-      new_image.at<uchar>(y, x) = convd_pixel;
-      
-      if(debug==1) {      
-        printf("\nbefore : (%d, %d): %d\n", y, x, pixel);
-        printf("after : (%d, %d): %d\n\n", y, x, convd_pixel);
-
-        if(x==3){return 0;}    
-      }
-    }
-  }
-
-  // write new image
-  imwrite("out/convolution.jpg", new_image);
-
-  return 0;
+	return 0;
 }
