@@ -48,10 +48,17 @@ int main( int argc, char** argv ) {
  	cvtColor( image, gray_image, CV_BGR2GRAY );
 	imwrite("out/grey.jpg", gray_image);
 
+	int usr_kernel_size = 5;
+
+	if (usr_filter.compare("sharpen") != 0) {
+		std::cout << "Kernel size: ";
+		std::cin >> usr_kernel_size;
+	}
+
 	// if (filter_type == 0) {
 	if (usr_filter.compare("blur") == 0) {
 		Mat carBlurred;
-		GaussianBlur(gray_image, 23, carBlurred);
+		GaussianBlur(gray_image, usr_kernel_size, carBlurred);
 		imwrite( "out/blur.jpg", carBlurred );
 	}
 
@@ -60,7 +67,7 @@ int main( int argc, char** argv ) {
 		Mat carSharpened;
 		const int sharpen_iterations = 1;
 		for(int i=0; i<sharpen_iterations; i++) {
-			Sharpen(gray_image, 5, carSharpened);
+			Sharpen(gray_image, usr_kernel_size, carSharpened);
 		}
 		imwrite("out/sharpened.jpg", carSharpened);
 	}
@@ -68,7 +75,7 @@ int main( int argc, char** argv ) {
 	// else if (filter_type == 2) {
 	else if (usr_filter.compare("unsharpen") == 0) {		
 		Mat carUSharpened;
-		UnsharpMask(gray_image, 23, carUSharpened);
+		UnsharpMask(gray_image, usr_kernel_size, carUSharpened);
 		imwrite("out/unsharpmask.jpg", carUSharpened);
 	}
 
