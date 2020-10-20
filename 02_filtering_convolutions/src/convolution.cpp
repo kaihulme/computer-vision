@@ -29,8 +29,8 @@ int main() {
 	cv::Mat kernel = cv::Mat(kernel_size, kernel_size, CV_64F, kernel_vals);
 
 	// set kernel radius for convolution
-	const int kernel_r_x = ( kernel.size[0] - 1 ) / 2;
-	const int kernel_r_y = ( kernel.size[1] - 1 ) / 2;
+	const int kernel_r_x = (kernel_size-1) / 2;
+	const int kernel_r_y = (kernel_size-1) / 2;
 
 	// replicate edge at border to allow edge convolutions
 	cv::Mat padded_image;
@@ -39,15 +39,15 @@ int main() {
 						cv::BORDER_REPLICATE );
 					
 	// for each pixel in the image
-	for ( int i = 0; i < image.rows; i++ ) {	
-		for( int j = 0; j < image.cols; j++ ) {
+	for (int i=0; i<image.rows; i++) {	
+		for(int j=0; j<image.cols; j++) {
 
 			// sum for matrix multiplication
 			double pixel_sum = 0.0;
 
 			// for each kernel value
-			for( int m = -kernel_r_x; m <= kernel_r_x; m++ ) {
-				for( int n = -kernel_r_y; n <= kernel_r_y; n++ ) {
+			for(int m=-kernel_r_x; m<=kernel_r_x; m++) {
+				for(int n=-kernel_r_y; n<=kernel_r_y; n++) {
 					
 					// correct image and kernel indices
 					int image_x = i + m + kernel_r_x;
@@ -57,7 +57,7 @@ int main() {
 
 					// get the image pixel and kernel value
 					int pixel_val = (int)padded_image.at<uchar>(image_x, image_y);
-					double kernel_val = kernel.at<double>( kernel_x, kernel_y);
+					double kernel_val = kernel.at<double>(kernel_x, kernel_y);
 					
 					// add their product to current sum
 					pixel_sum += pixel_val * kernel_val;
