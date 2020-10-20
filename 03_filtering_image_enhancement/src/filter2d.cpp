@@ -8,20 +8,25 @@
 
 using namespace cv;
 
-void GaussianBlur(
-	cv::Mat &input, 
-	int size,
+void GaussianBlur(cv::Mat &input, 
+				  int size,
 	cv::Mat &blurredOutput);
 
-void Sharpen(
-	cv::Mat &input, 
-	int size,
-	cv::Mat &sharpenedOutput);
+void Sharpen(cv::Mat &input, 
+			 int size,
+	         cv::Mat &sharpenedOutput);
 
-void UnsharpMask(
-	cv::Mat &input, 
-	int size,
-	cv::Mat &sharpenedOutput);
+void UnsharpMask(cv::Mat &input, 
+				 int size,
+				 cv::Mat &sharpenedOutput);
+
+void MedianFilter(cv::Mat &input, 
+			int size, 
+			cv::Mat &medianOutput);
+
+void quickSort(int array[], int low, int high);
+int get_pivot(int array[], int low, int high);
+void swap(int* a, int* b);
 
 int main( int argc, char** argv ) {
 
@@ -30,7 +35,7 @@ int main( int argc, char** argv ) {
   	std::cin >> usr_img;
 
 	string usr_filter;
-	std::cout << "Filter type (blur, sharpen, unsharpen): ";
+	std::cout << "Filter type (blur, sharpen, unsharpen, median): ";
 	std::cin >> usr_filter;
 
 	const string imageName = "resources/" + usr_img + ".png";
@@ -39,7 +44,7 @@ int main( int argc, char** argv ) {
  	image = imread( imageName, 1 );
 
  	if(!image.data ) {
-   		printf( "Invalid image\n " );
+   		printf( "\nERROR: image not found!\n\n" );
    		return -1;
  	}
 
@@ -76,6 +81,12 @@ int main( int argc, char** argv ) {
 		imwrite("out/unsharpmask.jpg", carUSharpened);
 	}
 
+	else if (usr_filter.compare("median") == 0) {		
+		Mat carMedianFiltered;
+		MedianFilter(gray_image, usr_kernel_size, carMedianFiltered);
+		imwrite("out/median.jpg", carMedianFiltered);
+	}
+
 	else { 
 		std::cout << "Invalid filter" << std::endl; 
 		return 0;
@@ -87,6 +98,7 @@ int main( int argc, char** argv ) {
 }
 
 void GaussianBlur(cv::Mat &input, int size, cv::Mat &blurredOutput) {
+	
 	// intialise the output using the input
 	blurredOutput.create(input.size(), input.type());
 
@@ -151,9 +163,6 @@ void Sharpen(cv::Mat &input, int size, cv::Mat &sharpenedOutput) {
 	// intialise the output using the input
 	sharpenedOutput.create(input.size(), input.type());
 
-	// temp for fixed 5x5 usharp mask kernel
-	// const int kernel_size = 5;
-
 	// unsharp masking kernel
 	double kernel_vals[5][5] = { 
 		{ 1.0,  4.0,    6.0,  4.0, 1.0 },
@@ -206,12 +215,8 @@ void Sharpen(cv::Mat &input, int size, cv::Mat &sharpenedOutput) {
 				}
 			}
 
-			// printf("\npixel before: %d\n", input.at<uchar>(i, j));
-
 			// set the output value as the sum of the convolution
 			sharpenedOutput.at<uchar>(i, j) = (uchar) sum;
-
-			// printf("pixel after: %d\n", (uchar) sum);
 		}
 	}
 }
@@ -220,4 +225,74 @@ void UnsharpMask(cv::Mat &input, int size, cv::Mat &sharpenedOutput) {
 	cv::Mat carGaussianBlurred;
 	GaussianBlur(input, size, carGaussianBlurred);
 	sharpenedOutput = (2 * input) - carGaussianBlurred;
+}
+
+void MedianFilter(cv::Mat &input, int size, cv::Mat &medianOutput) {
+
+	medianOutput.create(input.size(), input.type());
+
+	const int kernel_size = size*size;
+	const int kernelRadiusX = ( size - 1 ) / 2;
+	const int kernelRadiusY = ( size - 1 ) / 2;
+
+	cv::Mat paddedInput;
+	cv::copyMakeBorder( input, paddedInput, 
+						kernelRadiusX, kernelRadiusX, kernelRadiusY, kernelRadiusY,
+						cv::BORDER_REPLICATE );
+
+	for (int i = 0; i < input.rows; i++) {	
+		for(int j = 0; j < input.cols; j++) {
+
+			int kernel_vals[kernel_size];
+
+			for(int m=-kernelRadiusX; m<=kernelRadiusX; m++) {
+				for (int n=-kernelRadiusY; n<=kernelRadiusY; n++) {
+
+					int image_x = i + m + kernelRadiusX;
+					int image_y = j + n + kernelRadiusY;
+					int kernel_i = ((m+kernelRadiusX)*size) + n + 1;
+
+					kernel_vals[kernel_i] = (int)paddedInput.at<uchar>(image_x, image_y);
+				}
+			}
+
+			quickSort(kernel_vals, 0, kernel_size-1);
+
+			int mid_i = (kernel_size-1)/2;
+			uchar median = (uchar)kernel_vals[mid_i];
+
+			medianOutput.at<uchar>(i, j) = median;
+		}
+	}
+}
+
+void quickSort(int array[], int low, int high) {
+	if (low < high) {
+		int pivot_i = get_pivot(array, low, high);
+		quickSort(array, low, pivot_i-1);
+		quickSort(array, pivot_i+1, high);		
+	}
+}
+
+int get_pivot(int array[], int low, int high) {
+
+	int pivot = array[high];
+	int i = (low - 1); 
+  
+    for (int j = low; j <= high- 1; j++) { 
+        if (array[j] <= pivot) { 
+            i++; 
+            swap(&array[i], &array[j]); 
+        } 
+    } 
+
+    swap(&array[i + 1], &array[high]); 
+
+    return (i + 1); 
+}
+
+void swap(int* a, int* b) {
+	int t = *a; // create temp copy of a 
+	*a = *b; // set a as b
+	*b = t; // set b as a (temp)
 }
