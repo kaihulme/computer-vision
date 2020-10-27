@@ -35,4 +35,4 @@ main()
 	for (j = 0; j < dim2; ++j)
 	    for (k = 0; k < dim3; ++k)
 		printf("[%d]",ipppArr[i][j][k]); 
-}
+}   
