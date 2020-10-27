@@ -33,3 +33,7 @@
 *.exe
 *.out
 *.app
+
+# Compilation and program outputs
+/out
+/build

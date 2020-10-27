@@ -36,11 +36,6 @@ int main( int argc, char** argv ) {
   	std::cin >> usr_img;
 	const string imageName = "resources/" + usr_img + ".png";
 
-	// get filter type
-	string usr_filter;
-	std::cout << "Filter type (blur, sharpen, unsharpen, median): ";
-	std::cin >> usr_filter;
-
 	// read image data
  	Mat image;
  	image = imread( imageName, 1 );
@@ -49,10 +44,16 @@ int main( int argc, char** argv ) {
    		return -1;
  	}
 
+	// get filter type
+	string usr_filter;
+	std::cout << "Filter type (blur, sharpen, unsharpen, median): ";
+	std::cin >> usr_filter;
+
  	// create grey image
  	Mat gray_image;
  	cvtColor( image, gray_image, CV_BGR2GRAY );
-	imwrite("out/grey.jpg", gray_image);
+	string grey_file = "out/" + usr_img + "_grey.jpg";
+	imwrite(grey_file, gray_image);
 
 	// get kernel size (if not sharpen)
 	int usr_kernel_size = 5;
@@ -65,7 +66,8 @@ int main( int argc, char** argv ) {
 	if (usr_filter.compare("blur") == 0) {
 		Mat carBlurred;
 		GaussianBlur(gray_image, usr_kernel_size, carBlurred);
-		imwrite( "out/blur.jpg", carBlurred );
+		string file_out = "out/" + usr_img + "_blurred.jpg";
+		imwrite(file_out, carBlurred);
 	}
 	else if (usr_filter.compare("sharpen") == 0) {
 		Mat carSharpened;
@@ -73,17 +75,20 @@ int main( int argc, char** argv ) {
 		for(int i=0; i<sharpen_iterations; i++) {
 			Sharpen(gray_image, usr_kernel_size, carSharpened);
 		}
-		imwrite("out/sharpened.jpg", carSharpened);
+		string file_out = "out/" + usr_img + "_sharpened.jpg";
+		imwrite(file_out, carSharpened);
 	}
 	else if (usr_filter.compare("unsharpen") == 0) {		
 		Mat carUSharpened;
 		UnsharpMask(gray_image, usr_kernel_size, carUSharpened);
-		imwrite("out/unsharpmask.jpg", carUSharpened);
+		string file_out = "out/" + usr_img + "_unsharpened.jpg";
+		imwrite(file_out, carUSharpened);
 	}
 	else if (usr_filter.compare("median") == 0) {		
 		Mat carMedianFiltered;
 		MedianFilter(gray_image, usr_kernel_size, carMedianFiltered);
-		imwrite("out/median.jpg", carMedianFiltered);
+		string file_out = "out/" + usr_img + "_median_filtered.jpg";
+		imwrite(file_out, carMedianFiltered);
 	}
 	else { 
 		std::cout << "Invalid filter" << std::endl; 
