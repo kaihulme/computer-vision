@@ -35,5 +35,5 @@
 *.app
 
 # Compilation and program outputs
-/out
-/build
+*/out
+*/build
