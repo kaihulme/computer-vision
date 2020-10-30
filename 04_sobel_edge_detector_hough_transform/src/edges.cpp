@@ -23,16 +23,18 @@ void NormaliseAngles(cv::Mat &input);
 void Threshold(const cv::Mat &input, const double threshold_val, 
 			   cv::Mat &thresholded_output);
 
-// change to args: ./edges {file} -s(obel) -t(hreshold) -g(aussian)
-// add function for Convolution(input, kernel, width, height, output)
-int main(int argc, char** argv) {
-	// get image name
-	string usr_img;
-	std::cout << "\nPlease enter a image name: ";
-  	std::cin >> usr_img;
-	const string imageName = "resources/" + usr_img + ".png";
+// TODO change to args: ./edges {file} -s(obel) -t(hreshold) {t_value} -g(aussian) {k_size}
+// TODO if -t but not -s check if sobel outputs are already in /out
+// TODO add function for Convolution(input, kernel, width, height, output)
+int main(int argc, char* argv[]) {
+	// check arg count
+	if      (argc < 2) { printf("\nError: image not specified!\n\n");        return -1; }
+	else if (argc > 5) { printf("\nError: check your flags (-s -t -g)\n\n"); return -1; }
+	// get image location
+	const string img_arg = argv[1];
+	const string img_loc = "resources/" + img_arg + ".png";
 	// read image data
- 	const Mat image = imread(imageName, 1);
+ 	const Mat image = imread(img_loc, 1);
  	if(!image.data ) {
    		printf("\nError: image not found!\n\n");
    		return -1;
@@ -40,25 +42,31 @@ int main(int argc, char** argv) {
 	// create grey image
  	Mat img_grey;
  	cvtColor(image, img_grey, CV_BGR2GRAY);
-	// get filter type
-	string usr_filter;
-	std::cout << "Edge detection method - sobel (s), hough_transform (h): ";
-	std::cin >> usr_filter;
-	// ask to apply gaussian filter first
-	string usr_gaussian;
-	std::cout << "Apply gaussian filter first? (y/n): ";
-	std::cin >> usr_gaussian;
+	// bools for flags
+	bool sobel     = false;
+	bool threshold = false;
+	bool gaussian  = false;
+	// handle flags and set bools
+	for (int i=2; i<argc; i++) {
+		if      (!strcmp(argv[i], "-s") && !sobel)     sobel     = true;
+		else if (!strcmp(argv[i], "-t") && !threshold) threshold = true; 
+		else if (!strcmp(argv[i], "-g") && !gaussian)  gaussian  = true; 
+		else { 
+			std::cout << "\nError: check your flags (-s -t -g)\n" << std::endl; 
+			return -1; 
+		}
+	}	
 	// apply gaussian filter
-	if (usr_gaussian.compare("y") == 0) { 
+	if (gaussian) { 
 		int usr_kernel_size = 0;
         std::cout << "Gaussian filter size: ";
 		std::cin >> usr_kernel_size;
 		Mat img_input;
 		GaussianBlur(img_grey, usr_kernel_size, img_input);
 	}
-	else { Mat img_input = img_grey; }
+	else Mat img_input = img_grey;
 	// sobel edge detector
-    if (usr_filter.compare("s") == 0) {
+    if (sobel) {
 		// set kernel size and output matrices
         const int kernel_size = 3;
         Mat img_dfdx, img_dfdy;
@@ -68,42 +76,29 @@ int main(int argc, char** argv) {
 						  img_dfdx, img_dfdy,
 						  img_magnitude, img_direction);
 		// set file names
-        const string dfdx_out = "out/" + usr_img + "_dfdx.jpg";
-		const string dfdy_out = "out/" + usr_img + "_dfdy.jpg";
-		const string magnitude_out = "out/" + usr_img + "_magnitude.jpg";
-		const string direction_out = "out/" + usr_img + "_direction.jpg";
+        const string dfdx_out = "out/" + img_arg + "_dfdx.jpg";
+		const string dfdy_out = "out/" + img_arg + "_dfdy.jpg";
+		const string magnitude_out = "out/" + img_arg + "_magnitude.jpg";
+		const string direction_out = "out/" + img_arg + "_direction.jpg";
 		// write images to files
 		imwrite(dfdx_out, img_dfdx);
 		imwrite(dfdy_out, img_dfdy);
 		imwrite(magnitude_out, img_magnitude);
 		imwrite(direction_out, img_direction);
-	}
-	// hough transform
-	else if (usr_filter.compare("h") == 0) {
-		// set kernel size and output matrices
-        const int kernel_size = 3;
-		Mat img_dfdx, img_dfdy;
-		Mat img_magnitude, img_direction;
-		// apply sobel edge detection
-        SobelEdgeDetector(img_grey, kernel_size, 
-						  img_dfdx, img_dfdy,
-						  img_magnitude, img_direction);
-		// get threshold value and set threshold matrix
-		double threshold_val=0.0;
-		std::cout << "Threshold value: ";
-		std::cin >> threshold_val;
-		Mat img_thresholded_magnitude;
-		// threshold magnitudes
-		Threshold(img_magnitude, threshold_val, 
-				  img_thresholded_magnitude);
-		// set file name and write image to file
-		string threshold_direction_out = "out/" + usr_img + "_thresholded_magnitude.jpg";
-		imwrite(threshold_direction_out, img_thresholded_magnitude);
-	}
-	// invalid edge detector as input
-	else { 
-		std::cout << "\nError: unrecognised edge detector\n" << std::endl; 
-		return 0;
+		// if thresholding
+		if (threshold) {
+			// get threshold value and set threshold matrix
+			double threshold_val=0.0;
+			std::cout << "Threshold value: ";
+			std::cin >> threshold_val;
+			Mat img_thresholded_magnitude;
+			// threshold magnitudes
+			Threshold(img_magnitude, threshold_val, 
+					img_thresholded_magnitude);
+			// set file name and write image to file
+			string threshold_direction_out = "out/" + img_arg + "_thresholded_magnitude.jpg";
+			imwrite(threshold_direction_out, img_thresholded_magnitude);
+		}
 	}
 	// edge detection complete
 	std::cout << "...\n\nComplete!\n" << std::endl;
