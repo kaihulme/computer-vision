@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
 	if (gaussian) { 
 		Mat img_input;
 		GaussianBlur(img_grey, gaussian_val, img_input);
-		const string gaussian_out = "out/" + img_arg + "_gaussian.jpg";
+		const string gaussian_out = "out/" + img_arg + "/gaussian.jpg";
 		cv::imwrite(gaussian_out, img_input);
 	}
 	else Mat img_input = img_grey;
