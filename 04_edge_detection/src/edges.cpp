@@ -17,11 +17,15 @@ void SobelEdgeDetector(const cv::Mat &input, const int size,
 void GaussianBlur(const cv::Mat &input, const int size,
 	              cv::Mat &gaussian_output);
 
-void NormalisePixels(cv::Mat &input);
-void NormaliseAngles(cv::Mat &input);
+void HoughTransform(const cv::Mat &input, 
+					// const cv::Mat &gradients,
+					cv::Mat &hough_output);
 
 void Threshold(const cv::Mat &input, const double threshold_val, 
 			   cv::Mat &thresholded_output);
+
+void NormalisePixels(cv::Mat &input, cv::Mat &output);
+void NormaliseAngles(cv::Mat &input, cv::Mat &output);
 
 // TODO if -t but not -s check if sobel outputs are already in /out
 // TODO add function for Convolution(input, kernel, width, height, output)
@@ -45,7 +49,8 @@ int main(int argc, char* argv[]) {
 	// create grey image
  	Mat img_grey;
  	cvtColor(image, img_grey, CV_BGR2GRAY);
-	
+	Mat img_input = img_grey;
+
 	// values for flag handling
 	bool sobel, threshold, gaussian = false;
 	int gaussian_val, threshold_val = 0;
@@ -85,12 +90,10 @@ int main(int argc, char* argv[]) {
 
 	// apply gaussian filter
 	if (gaussian) { 
-		Mat img_input;
 		GaussianBlur(img_grey, gaussian_val, img_input);
-		const string gaussian_out = "out/" + img_arg + "/gaussian.jpg";
+		const string gaussian_out = "out/" + img_arg + "_gaussian.jpg";
 		cv::imwrite(gaussian_out, img_input);
 	}
-	else Mat img_input = img_grey;
 	
 	// sobel edge detector
     if (sobel) {
@@ -101,21 +104,29 @@ int main(int argc, char* argv[]) {
 		Mat img_magnitude, img_direction;
 	
 		// apply sobel edge detection
-		SobelEdgeDetector(img_grey, kernel_size, 
+		SobelEdgeDetector(img_input, kernel_size, 
 						  img_dfdx, img_dfdy,
 						  img_magnitude, img_direction);
+
+		Mat img_norm_dfdx, img_norm_dfdy;
+		Mat img_norm_magnitude, img_norm_direction;
+
+		NormalisePixels(img_dfdx, img_norm_dfdx);
+		NormalisePixels(img_dfdy, img_norm_dfdy);
+		NormalisePixels(img_magnitude, img_norm_magnitude);
+		NormaliseAngles(img_direction, img_norm_direction);
 	
 		// set file names
-        const string dfdx_out = "out/" + img_arg + "_dfdx.jpg";
-		const string dfdy_out = "out/" + img_arg + "_dfdy.jpg";
-		const string magnitude_out = "out/" + img_arg + "_magnitude.jpg";
-		const string direction_out = "out/" + img_arg + "_direction.jpg";
+        const string dfdx_norm_out = "out/" + img_arg + "_dfdx.jpg";
+		const string dfdy_norm_out = "out/" + img_arg + "_dfdy.jpg";
+		const string magnitude_norm_out = "out/" + img_arg + "_magnitude.jpg";
+		const string direction_norm_out = "out/" + img_arg + "_direction.jpg";
 	
 		// write images to files
-		cv::imwrite(dfdx_out, img_dfdx);
-		cv::imwrite(dfdy_out, img_dfdy);
-		cv::imwrite(magnitude_out, img_magnitude);
-		cv::imwrite(direction_out, img_direction);
+		cv::imwrite(dfdx_norm_out, img_norm_dfdx);
+		cv::imwrite(dfdy_norm_out, img_norm_dfdy);
+		cv::imwrite(magnitude_norm_out, img_norm_magnitude);
+		cv::imwrite(direction_norm_out, img_norm_direction);
 	
 		// if thresholding
 		if (threshold) {
@@ -215,10 +226,10 @@ void SobelEdgeDetector(const cv::Mat &input, const int size,
 	}
 	
 	// normalise pixel values to range 0-255
-	NormalisePixels(dfdy_output);
-	NormalisePixels(dfdx_output);
-	NormalisePixels(magnitude_output);
-	NormaliseAngles(direction_output);
+	// NormalisePixels(dfdy_output);
+	// NormalisePixels(dfdx_output);
+	// NormalisePixels(magnitude_output);
+	// NormaliseAngles(direction_output);
 }
 
 void GaussianBlur(const cv::Mat &input, const int size, 
@@ -276,51 +287,26 @@ void GaussianBlur(const cv::Mat &input, const int size,
 
 }
 
-void NormalisePixels(cv::Mat &input) {
 
-	// get min and max values in input
-	double minVal, maxVal; 
-	Point minLoc, maxLoc;
-	minMaxLoc(input, &minVal, &maxVal, &minLoc, &maxLoc);
+// void HoughTransform(const cv::Mat &input, 
+// 					// const cv::Mat &gradients,
+// 					cv::Mat &hough_output) {
 
-	// for each pixel in input
-	for (int i=0; i<input.rows; i++) {	
-		for (int j=0; j<input.cols; j++) {
-			// get current pixel
-			double pixel = input.at<double>(i, j);
-			// normalise pixel between range 0-255
-			double normalised_pixel = 255*((pixel-minVal) / (maxVal-minVal));
-			input.at<double>(i, j) = normalised_pixel;
-		}
-	}
+// 	int rho   = sqrt( (input.rows*input.rows) + (input.cols*input.cols) );
+// 	int theta = 255;
 
-}
+// 	hough_output.create( , cv::DataType<double>::type);
 
-void NormaliseAngles(cv::Mat &input) {
+// 	for (int i=0; i<input.rows; i++) {	
+// 		for(int j=0; j<input.cols; j++) {
 
-	// set pi constant      
-	const double pi = atan(1)*4;
-	// get min and max values in input
-	double minVal, maxVal; 
-	Point minLoc, maxLoc;
-	minMaxLoc(input, &minVal, &maxVal, &minLoc, &maxLoc);
+			
 
-	// for rach pixel in input
-	for (int i=0; i<input.rows; i++) {	
-		for (int j=0; j<input.cols; j++) {
-			// get current pixel value
-			double pixel = input.at<double>(i, j);
-			// if angle is positive
-			if (pixel >= 0.0) { // convert to degrees and normalise between range 0-255
-				input.at<double>(i, j) = (pixel*255)/(2*pi);
-			} // if angle is negative
-			else { // make positive then convert to degrees and normalise between range 0-255
-				input.at<double>(i, j) = (((2*pi)+pixel)*255)/(2*pi);
-			}
-		}
-	}
+// 		}
+// 	}
 
-}
+// }
+
 
 void Threshold(const cv::Mat &input, const double threshold_val, 
 			   cv::Mat &thresholded_output) {
@@ -340,6 +326,59 @@ void Threshold(const cv::Mat &input, const double threshold_val,
 			}
 			// set value in output image
 			thresholded_output.at<double>(i, j) = thresholded_pixel;
+		}
+	}
+
+}
+
+void NormalisePixels(cv::Mat &input, cv::Mat &output) {
+
+	// intialise the output using the input
+	output.create(input.size(), cv::DataType<double>::type);
+
+	// get min and max values in input
+	double minVal, maxVal; 
+	Point minLoc, maxLoc;
+	minMaxLoc(input, &minVal, &maxVal, &minLoc, &maxLoc);
+
+	// for each pixel in input
+	for (int i=0; i<input.rows; i++) {	
+		for (int j=0; j<input.cols; j++) {
+			// get current pixel
+			double pixel = input.at<double>(i, j);
+			// normalise pixel between range 0-255
+			double normalised_pixel = 255*((pixel-minVal) / (maxVal-minVal));
+			output.at<double>(i, j) = normalised_pixel;
+		}
+	}
+
+}
+
+void NormaliseAngles(cv::Mat &input, cv::Mat &output) {
+
+	// set pi constant      
+	const double pi = atan(1)*4;
+
+	// intialise the output using the input
+	output.create(input.size(), cv::DataType<double>::type);
+
+	// for rach pixel in input
+	for (int i=0; i<input.rows; i++) {	
+		for (int j=0; j<input.cols; j++) {
+			// get current pixel value
+			double pixel = input.at<double>(i, j);
+			// if angle is positive
+			if (pixel >= 0.0) { // convert to degrees and normalise between range 0-255
+				output.at<double>(i, j) = (pixel*255)/(2*pi);
+			} // if angle is negative
+			else { // make positive then convert to degrees and normalise between range 0-255
+				output.at<double>(i, j) = (((2*pi)+pixel)*255)/(2*pi);
+			}
+
+			// if (output.at<double>(i,j) > 225) {
+			// 	std::cout << "Angle pixel: " << output.at<double>(i,j) << std::endl;
+			// }
+
 		}
 	}
 
