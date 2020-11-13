@@ -1,4 +1,3 @@
-// header inclusion
 #include <stdio.h>
 #include <string>
 #include <iostream>
@@ -17,9 +16,9 @@ void SobelEdgeDetector(const cv::Mat &input, const int size,
 void GaussianBlur(const cv::Mat &input, const int size,
 	              cv::Mat &gaussian_output);
 
-void HoughTransform(const cv::Mat &input, 
-					// const cv::Mat &gradients,
-					cv::Mat &hough_output);
+void HoughTransformCircles(const cv::Mat &input, int r_size,
+				     	   int min_r, int max_r, int step_size,
+				     	   std::vector<cv::Mat> &hough_circles_space);
 
 void Threshold(const cv::Mat &input, const double threshold_val, 
 			   cv::Mat &thresholded_output);
@@ -27,8 +26,6 @@ void Threshold(const cv::Mat &input, const double threshold_val,
 void NormalisePixels(cv::Mat &input, cv::Mat &output);
 void NormaliseAngles(cv::Mat &input, cv::Mat &output);
 
-// TODO if -t but not -s check if sobel outputs are already in /out
-// TODO add function for Convolution(input, kernel, width, height, output)
 int main(int argc, char* argv[]) {
 	
 	// check arg count
@@ -52,13 +49,16 @@ int main(int argc, char* argv[]) {
 	Mat img_input = img_grey;
 
 	// values for flag handling
-	bool sobel, threshold, gaussian = false;
+	bool sobel, hough_circles, threshold, gaussian = false;
 	int gaussian_val, threshold_val = 0;
 	
 	// handle flags and set bools
 	for (int i=2; i<argc; i++) {
 		if      (!strcmp(argv[i], "-s") && !sobel) {
 			sobel = true;
+		}
+		else if (!strcmp(argv[i], "-h") && !hough_circles) {
+			hough_circles = true;
 		}
 		else if (!strcmp(argv[i], "-t") && !threshold) {
 			try {
@@ -108,9 +108,9 @@ int main(int argc, char* argv[]) {
 						  img_dfdx, img_dfdy,
 						  img_magnitude, img_direction);
 
+		// normalise pixels for output
 		Mat img_norm_dfdx, img_norm_dfdy;
 		Mat img_norm_magnitude, img_norm_direction;
-
 		NormalisePixels(img_dfdx, img_norm_dfdx);
 		NormalisePixels(img_dfdy, img_norm_dfdy);
 		NormalisePixels(img_magnitude, img_norm_magnitude);
@@ -138,12 +138,38 @@ int main(int argc, char* argv[]) {
 			// set file name and write image to file
 			string threshold_direction_out = "out/" + img_arg + "_thresholded_magnitude.jpg";
 			cv::imwrite(threshold_direction_out, img_thresholded_magnitude);
+			// set magnitude image to thresholded version
+			img_magnitude = img_thresholded_magnitude;
+		}
+
+		// if hough circle transform
+		if (hough_circles) {
+			// min & max circle radius and step size
+			const int min_r     = 30;
+			const int max_r     = 50;
+			const int step_size = 5;
+			const int r_size = (max_r - min_r) / step_size;
+			std::cout << r_size << " Hough space circles, radius " 
+					  << min_r << "->" << max_r << " (step="
+					  << step_size << "):\n" << std::endl;
+			// create 3d hough space vector where each 2d slice represents a circle with radius r
+			std::vector<cv::Mat> hough_circles_space;
+			// perform hough circle transform on magnitudes
+			HoughTransformCircles(img_magnitude, r_size, min_r, max_r, 
+					  			  step_size, hough_circles_space);
+			// normalised output image
+			Mat img_norm_hough_circles;
+			// normalise and write each hough space image
+			for (int r=0; r<r_size; r++) {
+				NormalisePixels(hough_circles_space[r], img_norm_hough_circles);
+				string hough_circles_out = "out/" + img_arg + "_hough_circles_" + std::to_string(r+1) + ".jpg";
+				cv::imwrite(hough_circles_out, img_norm_hough_circles);
+			}
 		}
 	
 	}
-	
-	// edge detection complete
-	std::cout << "...\n\nComplete!\n" << std::endl;
+
+	std::cout << "\nComplete!\n" << std::endl;
  	
 	return 0;
 }
@@ -288,24 +314,51 @@ void GaussianBlur(const cv::Mat &input, const int size,
 }
 
 
-// void HoughTransform(const cv::Mat &input, 
-// 					// const cv::Mat &gradients,
-// 					cv::Mat &hough_output) {
+void HoughTransformCircles(const cv::Mat &input, int r_size,
+						   int min_r, int max_r, int step_size,
+						   std::vector<cv::Mat> &hough_circles_output) {
 
-// 	int rho   = sqrt( (input.rows*input.rows) + (input.cols*input.cols) );
-// 	int theta = 255;
+	// initalise hough_circles output
+	cv::Mat hough_space;
+	hough_space.create(input.size(), cv::DataType<double>::type);
+	// set current radius to min radius
+	int radius = min_r;
+	// for each circle size
+	for (int r=0; r<r_size; r++) {
+		// reset hough space for current radius
+		for (int i=0; i<input.rows; i++) {	
+			for(int j=0; j<input.cols; j++) {
+				hough_space.at<double>(i, j) = 0.0;
+			}
+		}
+		// for each pixel in image
+		for (int i=0; i<input.rows; i++) {	
+			for(int j=0; j<input.cols; j++) {
+				// get gradient magnitude at (i,j)
+				double pixel_val = input.at<double>(i,j);
+				// if gradient magnitude is not 0
+				if (pixel_val > 0) {
+					// for circle around point
+					for (int theta=0; theta<360; theta+=20){
+						// get circle coordinates at and theta
+						double x0 = i - (radius * cos(theta*CV_PI/180));
+						double y0 = j - (radius * sin(theta*CV_PI/180));
+						// if point is in image increment value in hough space
+						if (x0>=0 && y0>=0 && x0<input.rows && y0<input.cols) {
+							hough_space.at<double>(x0,y0)++;
+						}
 
-// 	hough_output.create( , cv::DataType<double>::type);
+					}
+				}
+			}
+		}
+		// add hough space for circle radius r to vector of spaces
+		hough_circles_output.push_back(hough_space.clone());
+		radius += step_size;
+		std::cout << r+1 << ": computed r=" << radius << std::endl;
+	}
 
-// 	for (int i=0; i<input.rows; i++) {	
-// 		for(int j=0; j<input.cols; j++) {
-
-			
-
-// 		}
-// 	}
-
-// }
+}
 
 
 void Threshold(const cv::Mat &input, const double threshold_val, 
@@ -356,9 +409,6 @@ void NormalisePixels(cv::Mat &input, cv::Mat &output) {
 
 void NormaliseAngles(cv::Mat &input, cv::Mat &output) {
 
-	// set pi constant      
-	const double pi = atan(1)*4;
-
 	// intialise the output using the input
 	output.create(input.size(), cv::DataType<double>::type);
 
@@ -369,16 +419,11 @@ void NormaliseAngles(cv::Mat &input, cv::Mat &output) {
 			double pixel = input.at<double>(i, j);
 			// if angle is positive
 			if (pixel >= 0.0) { // convert to degrees and normalise between range 0-255
-				output.at<double>(i, j) = (pixel*255)/(2*pi);
+				output.at<double>(i, j) = (pixel*255)/(2*CV_PI);
 			} // if angle is negative
 			else { // make positive then convert to degrees and normalise between range 0-255
-				output.at<double>(i, j) = (((2*pi)+pixel)*255)/(2*pi);
+				output.at<double>(i, j) = (((2*CV_PI)+pixel)*255)/(2*CV_PI);
 			}
-
-			// if (output.at<double>(i,j) > 225) {
-			// 	std::cout << "Angle pixel: " << output.at<double>(i,j) << std::endl;
-			// }
-
 		}
 	}
 
