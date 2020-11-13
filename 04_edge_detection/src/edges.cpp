@@ -49,9 +49,14 @@ int main(int argc, char* argv[]) {
  	cvtColor(image, img_grey, CV_BGR2GRAY);
 	Mat img_input = img_grey;
 
-	// values for flag handling
+	// values for flag handling (with defaults)
 	bool sobel, hough_circles, threshold, gaussian = false;
-	int gaussian_val, threshold_val, min_r, max_r, r_step, t_step = 0;
+	int gaussian_val = 3;
+	int threshold_val = 100;
+	int min_r = 5;
+	int max_r = 50;
+	int r_step = 1;
+	int t_step = 1;
 	
 	// handle flags and set bools
 	for (int i=2; i<argc; i++) {
@@ -62,33 +67,32 @@ int main(int argc, char* argv[]) {
 		// if -h [x][y][z] apply hough transform circles with radii x->y step z
 		else if (!strcmp(argv[i], "-h") && !hough_circles) { 
 			try {
-				min_r  = std::stoi(argv[i+1]);
-				max_r  = std::stoi(argv[i+2]);
-				r_step = std::stoi(argv[i+3]);
-				t_step = std::stoi(argv[i+4]);
+				min_r  = std::stoi(argv[i+1]); i++;
+				max_r  = std::stoi(argv[i+1]); i++;
+				r_step = std::stoi(argv[i+1]); i++;
+				t_step = std::stoi(argv[i+1]); i++;
 			}
 			catch (std::exception const &e) { 
-				std::cout << "\nError: specify min max and step for hough transform radii (-h [min][max][radius_step][angle_step]\n" << std::endl;  
-				return -1; 
+				// std::cout << "\nError: specify min max and step for hough transform radii (-h [min][max][radius_step][angle_step]\n" << std::endl;  
+				// return -1; 
+				// continue;
 			} 
 			hough_circles = true;
-			i+=4;
+			// i+=4;
 		}
 
 		// if -g [x] apply gaussian blur with specified kernel size
 		else if (!strcmp(argv[i], "-g") && !gaussian)  {
-			try { gaussian_val = std::stoi(argv[i+1]); }
-			catch (std::exception const &e) { std::cout << "\nError: kernel size not specified\n" << std::endl;  return -1; } 
+			try { gaussian_val = std::stoi(argv[i+1]); i++; }
+			catch (std::exception const &e) {} //{ continue; } // { std::cout << "\nError: kernel size not specified\n" << std::endl;  return -1; } 
 			gaussian = true;
-			i++;
 		}
 
 		// if -t [x] apply thresholding to gradient magnitudes at specified value
 		else if (!strcmp(argv[i], "-t") && !threshold) {
-			try { threshold_val = std::stoi(argv[i+1]); }
-			catch (std::exception const &e) { std::cout << "\nError: threshold value not specified\n" << std::endl;  return -1; }
+			try { threshold_val = std::stoi(argv[i+1]); i++; }
+			catch (std::exception const &e) {}//{ continue; } // std::cout << "\nError: threshold value not specified\n" << std::endl;  return -1; }
 			threshold = true;
-			i++;
 		}
 		
 		// unrecognised argument
