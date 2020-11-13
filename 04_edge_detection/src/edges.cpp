@@ -8,13 +8,11 @@
 using namespace cv;
 
 void SobelEdgeDetector(const cv::Mat &input, const int size, 
-					   cv::Mat &dfdx_output, 
-					   cv::Mat &dfdy_output,
-					   cv::Mat &maginitude_output, 
-					   cv::Mat &direction_output);
+					   cv::Mat &dfdx_output, cv::Mat &dfdy_output,
+					   cv::Mat &maginitude_output, cv::Mat &direction_output);
 
 void HoughTransformCircles(const cv::Mat &input, int r_size,
-				     	   int min_r, int max_r, int step_size,
+				     	   int min_r, int max_r, int r_step, int t_step,
 				     	   std::vector<cv::Mat> &hough_circles_space);
 
 void GaussianBlur(const cv::Mat &input, const int size,
@@ -25,8 +23,7 @@ void Threshold(const cv::Mat &input, const double threshold_val,
 
 void NormalisePixels(cv::Mat &input, cv::Mat &output);
 
-void NormaliseWrite(string img_name, string out_type, 
-					int arg, cv::Mat output);
+void NormaliseWrite(string img_name, string out_type, int arg, cv::Mat output);
 
 void RadToDeg(cv::Mat &input, cv::Mat &output);
 
@@ -47,56 +44,64 @@ int main(int argc, char* argv[]) {
    		return -1;
  	}
 	
-	// create grey image
+	// convert to grey
  	Mat img_grey;
  	cvtColor(image, img_grey, CV_BGR2GRAY);
 	Mat img_input = img_grey;
 
 	// values for flag handling
 	bool sobel, hough_circles, threshold, gaussian = false;
-	int gaussian_val, threshold_val = 0;
+	int gaussian_val, threshold_val, min_r, max_r, r_step, t_step = 0;
 	
 	// handle flags and set bools
 	for (int i=2; i<argc; i++) {
-		if      (!strcmp(argv[i], "-s") && !sobel) {
-			sobel = true;
-		}
-		else if (!strcmp(argv[i], "-h") && !hough_circles) {
-			hough_circles = true;
-		}
-		else if (!strcmp(argv[i], "-t") && !threshold) {
+
+		// if -s apply sobel edge detection
+		if (!strcmp(argv[i], "-s") && !sobel) sobel = true;
+
+		// if -h [x][y][z] apply hough transform circles with radii x->y step z
+		else if (!strcmp(argv[i], "-h") && !hough_circles) { 
 			try {
-				threshold_val = std::stoi(argv[i+1]);
-				threshold = true;
-				i++;
-			} catch (std::exception const &e) {
-				std::cout << "\nError: threshold value not specified\n" << std::endl; 
-				return -1;
+				min_r  = std::stoi(argv[i+1]);
+				max_r  = std::stoi(argv[i+2]);
+				r_step = std::stoi(argv[i+3]);
+				t_step = std::stoi(argv[i+4]);
 			}
-		} 
-		else if (!strcmp(argv[i], "-g") && !gaussian)  {
-			try {
-				gaussian_val = std::stoi(argv[i+1]);
-				gaussian = true;
-				i++;
-			} catch (std::exception const &e) {
-				std::cout << "\nError: kernel size not specified\n" << std::endl; 
-				return -1;
+			catch (std::exception const &e) { 
+				std::cout << "\nError: specify min max and step for hough transform radii (-h [min][max][radius_step][angle_step]\n" << std::endl;  
+				return -1; 
 			} 
+			hough_circles = true;
+			i+=4;
 		}
-		else { 
-			std::cout << "\nError: check your flags (-s -t [threshold_value] -g [kernel_size])\n" << std::endl; 
-			return -1; 
+
+		// if -g [x] apply gaussian blur with specified kernel size
+		else if (!strcmp(argv[i], "-g") && !gaussian)  {
+			try { gaussian_val = std::stoi(argv[i+1]); }
+			catch (std::exception const &e) { std::cout << "\nError: kernel size not specified\n" << std::endl;  return -1; } 
+			gaussian = true;
+			i++;
 		}
+
+		// if -t [x] apply thresholding to gradient magnitudes at specified value
+		else if (!strcmp(argv[i], "-t") && !threshold) {
+			try { threshold_val = std::stoi(argv[i+1]); }
+			catch (std::exception const &e) { std::cout << "\nError: threshold value not specified\n" << std::endl;  return -1; }
+			threshold = true;
+			i++;
+		}
+		
+		// unrecognised argument
+		else { std::cout << "\nError: check your flags ('?' for help)\n" << std::endl; return -1; }
 	}
 	
-	if (threshold && !sobel) { printf("\nError: cannot threshold magnitudes without appling edge detection (-s)!\n\n"); return -1; }
+	if      (threshold && !sobel)     { printf("\nError: magnitude threshold requires sobel edge detection (-s)!\n\n"); return -1; }
+	else if (hough_circles && !sobel) { printf("\nError: hough transform requires sobel edge detection (-s)!\n\n");     return -1; }
 
 	// apply gaussian filter
 	if (gaussian) { 
 		GaussianBlur(img_grey, gaussian_val, img_input);
-		const string gaussian_out = "out/" + img_arg + "_gaussian.jpg";
-		cv::imwrite(gaussian_out, img_input);
+		NormaliseWrite(img_arg, "gaussian", gaussian_val, img_input);
 	}
 	
 	// sobel edge detector
@@ -112,14 +117,11 @@ int main(int argc, char* argv[]) {
 						  img_dfdx, img_dfdy,
 						  img_magnitude, img_direction);
 
-		// NormaliseAngles(img_direction, img_norm_direction);
-		// const string direction_norm_out = "out/" + img_arg + "_direction.jpg";
-		// cv::imwrite(direction_norm_out, img_norm_direction);
-
 		// normalise and write output to images
 		NormaliseWrite(img_arg, "dfdx", 0, img_dfdx);
 		NormaliseWrite(img_arg, "dfdy", 0, img_dfdy);
 		NormaliseWrite(img_arg, "magnitude", 0, img_magnitude);
+		
 		// convert radians to degrees before 
 		Mat img_direction_deg;
 		RadToDeg(img_direction, img_direction_deg);
@@ -138,19 +140,16 @@ int main(int argc, char* argv[]) {
 		}
 		// if hough circle transform
 		if (hough_circles) {
-			// min & max circle radius and step size
-			const int min_r     = 30;
-			const int max_r     = 50;
-			const int step_size = 5;
-			const int r_size = (max_r - min_r) / step_size;
-			// create 3d hough space vector where each 2d slice represents a circle with radius r
+			// set number of radii to apply
+			const int r_size = (max_r - min_r) / r_step;
+			// create vector of hough spaces
 			std::vector<cv::Mat> hough_circles_space;
 			// perform hough circle transform on magnitudes
 			HoughTransformCircles(img_magnitude, r_size, min_r, max_r, 
-					  			  step_size, hough_circles_space);
+					  			  r_step, t_step, hough_circles_space);
 			// normalise and write each hough space image
 			for (int r=0; r<r_size; r++) NormaliseWrite(img_arg, "hough_circles_radius", 
-														(min_r+(r*step_size)), hough_circles_space[r]);
+														(min_r+(r*r_step)), hough_circles_space[r]);
 		}
 	
 	}
@@ -160,10 +159,8 @@ int main(int argc, char* argv[]) {
 }
 
 void SobelEdgeDetector(const cv::Mat &input, const int size, 
-					   cv::Mat &dfdx_output, 
-					   cv::Mat &dfdy_output,
-					   cv::Mat &magnitude_output, 
-					   cv::Mat &direction_output) {
+					   cv::Mat &dfdx_output, cv::Mat &dfdy_output,
+					   cv::Mat &magnitude_output, cv::Mat &direction_output) {
 	
 	// intialise the output using the input
 	dfdx_output.create(input.size(), cv::DataType<double>::type);
@@ -236,10 +233,11 @@ void SobelEdgeDetector(const cv::Mat &input, const int size,
 		}
 	}
 
+	std::cout << "\nSobel edge detection complete!" << std::endl;
 }
 
 void HoughTransformCircles(const cv::Mat &input, int r_size,
-						   int min_r, int max_r, int step_size,
+						   int min_r, int max_r, int r_step, int t_step,
 						   std::vector<cv::Mat> &hough_circles_output) {
 
 	// initalise hough_circles output
@@ -249,8 +247,8 @@ void HoughTransformCircles(const cv::Mat &input, int r_size,
 	// set current radius to min radius
 	int radius = min_r;
 
-	// for each circle size
-	for (int r=0; r<r_size; r++) {
+	// for each radii
+	for (int r=0; r<=r_size; r++) {
 
 		// reset hough space for current radius
 		for (int i=0; i<input.rows; i++) {	
@@ -267,11 +265,11 @@ void HoughTransformCircles(const cv::Mat &input, int r_size,
 				// if gradient magnitude is not 0
 				if (pixel_val > 0) {
 					// for circle around point
-					for (int theta=0; theta<360; theta+=20){
-						// get circle coordinates at and theta
+					for (int theta=0; theta<360; theta+=t_step){
+						// get circle coordinates at and angle theta
 						double x0 = i - (radius * cos(theta*CV_PI/180));
 						double y0 = j - (radius * sin(theta*CV_PI/180));
-						// if point is in image increment value in hough space
+						// increment value in hough space (unless out of image)
 						if (x0>=0 && y0>=0 && x0<input.rows && y0<input.cols) {
 							hough_space.at<double>(x0,y0)++;
 						}
@@ -282,11 +280,12 @@ void HoughTransformCircles(const cv::Mat &input, int r_size,
 
 		// add hough space for circle radius r to vector of spaces
 		hough_circles_output.push_back(hough_space.clone());
-		radius += step_size;
-		std::cout << r+1 << ": computed r=" << radius << std::endl;
+		// std::cout << r+1 << ": computed r=" << radius << std::endl;
+		radius += r_step;
 
 	}
 
+	std::cout << "\nHough transform circles complete!" << std::endl;
 }
 
 void GaussianBlur(const cv::Mat &input, const int size, 
@@ -342,6 +341,7 @@ void GaussianBlur(const cv::Mat &input, const int size,
 		}
 	}
 
+	std::cout << "\nGaussian blur complete!" << std::endl;
 }
 
 void Threshold(const cv::Mat &input, const double threshold_val, 
@@ -365,6 +365,7 @@ void Threshold(const cv::Mat &input, const double threshold_val,
 		}
 	}
 
+	std::cout << "\nGradient magnitude thresholding complete!" << std::endl;
 }
 
 void NormalisePixels(cv::Mat &input, cv::Mat &output) {
