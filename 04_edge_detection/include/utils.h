@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <opencv/cv.h>        
 #include <opencv/highgui.h>   
 #include <opencv/cxcore.h>
