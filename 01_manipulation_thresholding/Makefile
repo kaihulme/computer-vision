@@ -1,34 +1,39 @@
-# Make C++
-
-.PHONY = all clean
+# Simple Makefile
 
 CXX = g++
-LINKERFLAG = -lm
+CXXFLAGS = -Wall -g -std=c++11
 
-LIBS = "/usr/lib64/libopencv_core.so.2.4 /usr/lib64/libopencv_highgui.so.2.4"
+LIBS = /usr/lib64/libopencv_core.so.2.4 /usr/lib64/libopencv_highgui.so.2.4 /usr/lib64/libopencv_imgproc.so.2.4
 
-SRCS := $(wildcard *.cpp)
-BINS := $(SRCS:%.cpp=%)
+EXEC = display draw hello pixels thr
 
+MKDIRS = mkdir -p out
 
-all: ${BINS}
+all: mkdirs $(EXEC)
 
-# %: %.out
-# 	@echo "Checking.."
-# 	${CC} ${LINKERFLAG} $< -out $@
+mkdirs:
+	$(MKDIRS)
+	
+display:
+	$(CXX) $(CXXFLAGS) $(LIBS) -o display.out src/display.cpp
 
-# %.out: %.cpp
-# 	@echo "Creating object.."
-# 	${CC} -g /usr/lib64/libopencv_core.so.2.4 /usr/lib64/libopencv_highgui.so.2.4 $<
+draw:
+	$(CXX) $(CXXFLAGS) $(LIBS) -o draw.out src/draw.cpp
 
-%.out: %.cpp
-	@echo "$(CXX) -g $< /usr/lib64/libopencv_core.so.2.4 /usr/lib64/libopencv_highgui.so.2.4 -o $@"
-	$(CXX) -g $< /usr/lib64/libopencv_core.so.2.4 /usr/lib64/libopencv_highgui.so.2.4 -o $@
-	# $(CXX) -g test.cpp /usr/lib64/libopencv_core.so.2.4 /usr/lib64/libopencv_highgui.so.2.4 -o test
+hello:
+	$(CXX) $(CXXFLAGS) $(LIBS) -o hello.out src/hello.cpp
 
+pixels:
+	$(CXX) $(CXXFLAGS) $(LIBS) -o pixels.out src/pixels.cpp
+
+thr:
+	$(CXX) $(CXXFLAGS) $(LIBS) -o thr.out src/thr.cpp
+
+.PHONY: clean all
 clean:
-	@echo "Cleaning up..."
-	rm -rvf *.out ${BINS}
-
-# hello: hello/hello.cpp
-# 	${cc} hello/hello.cpp libs -o hello
+	\rm -f display.out
+	\rm -f draw.out
+	\rm -f hello.out
+	\rm -f pixels.out
+	\rm -f thr.out
+	\rm -f -r out
