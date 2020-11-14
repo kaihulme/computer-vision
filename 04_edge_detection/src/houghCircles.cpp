@@ -1,13 +1,12 @@
 #include <include/houghCircles.h>
 
-
-void HoughTransformCircles(const cv::Mat &input, int r_size,
-						   int min_r, int max_r, int r_step, int t_step,
-						   std::vector<cv::Mat> &hough_circles_output) {
+void GetHoughSpaceCircles(const cv::Mat &input, int r_size,
+						  int min_r, int max_r, int r_step, int t_step,
+						  std::vector<cv::Mat> &hough_space_circles_output) {
 
 	// initalise hough_circles output
-	cv::Mat hough_space;
-	hough_space.create(input.size(), cv::DataType<double>::type);
+	cv::Mat hough_space_circles;
+	hough_space_circles.create(input.size(), cv::DataType<double>::type);
 
 	// set current radius to min radius
 	int radius = min_r;
@@ -18,7 +17,7 @@ void HoughTransformCircles(const cv::Mat &input, int r_size,
 		// reset hough space for current radius
 		for (int i=0; i<input.rows; i++) {	
 			for(int j=0; j<input.cols; j++) {
-				hough_space.at<double>(i, j) = 0.0;
+				hough_space_circles.at<double>(i, j) = 0.0;
 			}
 		}
 
@@ -36,7 +35,7 @@ void HoughTransformCircles(const cv::Mat &input, int r_size,
 						double y0 = j - (radius * sin(theta*CV_PI/180));
 						// increment value in hough space (unless out of image)
 						if (x0>=0 && y0>=0 && x0<input.rows && y0<input.cols) {
-							hough_space.at<double>(x0,y0)++;
+							hough_space_circles.at<double>(x0,y0)++;
 						}
 					}
 				}
@@ -44,11 +43,35 @@ void HoughTransformCircles(const cv::Mat &input, int r_size,
 		}
 
 		// add hough space for circle radius r to vector of spaces
-		hough_circles_output.push_back(hough_space.clone());
+		hough_space_circles_output.push_back(hough_space_circles.clone());
 		// std::cout << r+1 << ": computed r=" << radius << std::endl;
 		radius += r_step;
 
 	}
 
 	std::cout << "\nHough transform circles complete!" << std::endl;
+}
+
+void SumHoughSpaceCircles(std::vector<cv::Mat> &hough_space_circles,
+						  cv::Mat &hough_space_circles_summed) {
+
+    // set summed space as 
+    hough_space_circles_summed.create(hough_space_circles[0].size(), cv::DataType<double>::type);
+
+    // set hough space sum to 0
+    for (int i=0; i<hough_space_circles_summed.rows; i++) {	
+        for(int j=0; j<hough_space_circles_summed.cols; j++) {
+            hough_space_circles_summed.at<double>(i, j) = 0.0;
+        }
+    }
+
+    // for each hough space add value to summed hough space
+    for (auto space : hough_space_circles) {
+        for (int i=0; i<hough_space_circles_summed.rows; i++) {
+            for (int j=0; j<hough_space_circles_summed.cols; j++) {
+                hough_space_circles_summed.at<double>(i,j) += space.at<double>(i,j);
+            }
+        }
+    }
+
 }

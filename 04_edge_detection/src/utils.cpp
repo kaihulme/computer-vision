@@ -14,7 +14,7 @@ double Convolution(cv::Mat &input, cv::Mat &kernel,
             int kernel_i = m + r_x;
             int kernel_j = n + r_y;
             // get input and kernel values
-            double input_val  = (double) input.at<uchar>(input_i , input_j );
+            double input_val  = input.at<double>(input_i, input_j);
 			double kernel_val = kernel.at<double>(kernel_i, kernel_j);
             // add product to current sum
             result += input_val * kernel_val;
@@ -99,18 +99,5 @@ void RadToDeg(cv::Mat &input, cv::Mat &output) {
 			output.at<double>(i,j) = (rad >= 0 ? rad : (2*CV_PI + rad)) * 360 / (2*CV_PI); 
 		}
 	}
-
-}
-
-void ArgsHelper() {
-
-    // open file
-    string file_name = "args_help.txt";
-    std::ifstream f(file_name);
-
-    // output file contents
-    std::cout<<"\n"<<std::endl;
-    if (f.is_open()) std::cout << f.rdbuf();
-    std::cout<<"\n"<<std::endl;
 
 }

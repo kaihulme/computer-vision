@@ -1,7 +1,7 @@
 #include <include/argsHandler.h>
 
 int ArgsHandler(int argc, char *argv[], 
-                cv::Mat &image, string image_name,
+                cv::Mat &image, string &image_name,
                 bool &sobel, bool &hough_circles, 
                 bool &threshold, bool &gaussian,
 	            int &gaussian_val, int &threshold_val,
@@ -38,11 +38,16 @@ int ArgsHandler(int argc, char *argv[],
 	const string img_loc = "resources/" + image_name + ".png";
 	
 	// read image data
- 	image = imread(img_loc, 1);
- 	if(!image.data ) {
-        printf("\nError: image not found! ('?' for help)\n\n"); 
-        return -1; 
-    } 
+ 	const Mat image_read = imread(img_loc, 1);
+ 	if(!image_read.data ) {
+   		printf("\nError: image not found!\n\n");
+   		return -1;
+ 	} 
+
+	// convert to grey double Matrix
+ 	cv::Mat img_grey;
+ 	cvtColor(image_read, img_grey, CV_BGR2GRAY);
+	img_grey.convertTo(image, cv::DataType<double>::type);
 	
 	// handle flags and set bools
 	for (int i=2; i<argc; i++) {
@@ -94,4 +99,17 @@ int ArgsHandler(int argc, char *argv[],
 
     // return pass
     return 1;
+}
+
+void ArgsHelper() {
+
+    // open file
+    string file_name = "args_help.txt";
+    std::ifstream f(file_name);
+
+    // output file contents
+    std::cout<<"\n"<<std::endl;
+    if (f.is_open()) std::cout << f.rdbuf();
+    std::cout<<"\n"<<std::endl;
+
 }
