@@ -57,14 +57,6 @@ void NormaliseWrite(string img_name, string out_type, int arg, cv::Mat output) {
 	string file_name = "out/" + img_name + "_" + out_type;
 	file_name += (arg==0 ? ".jpg" : "_" + std::to_string(arg) + ".jpg");
 
-
-
-	// if (arg==0) file_name += ".jpg";
-	// else 			file_name += "_" + std::to_string(arg) + ".jpg";
-
-
-
-
 	// write normalised image
 	cv::imwrite(file_name, normalised_output);
 
