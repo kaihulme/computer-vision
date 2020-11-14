@@ -6,7 +6,7 @@
 int main(int argc, char* argv[]) {
 	
 	// check arg count
-	if      (argc < 2)  { printf("\nError: image not specified!\n\n");     return -1; }
+	if (argc < 2)  { printf("\nError: image not specified!\n\n");     return -1; }
 	
 	if (!strcmp(argv[1], "?")) { ArgsHelper(); return -1; }
 	else if (argc == 2) { printf("\nError: operation not specified!\n\n"); return -1; }
@@ -17,10 +17,7 @@ int main(int argc, char* argv[]) {
 	
 	// read image data
  	const Mat image = imread(img_loc, 1);
- 	if(!image.data ) {
-   		printf("\nError: image not found! ('?' for help)\n\n");
-   		return -1;
- 	} 
+ 	if(!image.data ) {printf("\nError: image not found! ('?' for help)\n\n"); return -1; } 
 
 	// convert to grey
  	Mat img_grey;
@@ -29,12 +26,9 @@ int main(int argc, char* argv[]) {
 
 	// values for flag handling (with defaults)
 	bool sobel, hough_circles, threshold, gaussian = false;
-	int gaussian_val = 3;
-	int threshold_val = 100;
-	int min_r = 5;
-	int max_r = 50;
-	int r_step = 1;
-	int t_step = 1;
+	int gaussian_val = 3; int threshold_val = 100;
+	int min_r = 5; int max_r = 50;
+	int r_step = 1; int t_step = 1;
 	
 	// handle flags and set bools
 	for (int i=2; i<argc; i++) {

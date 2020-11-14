@@ -8,6 +8,9 @@
 
 using namespace cv;
 
+double Convolution(cv::Mat &input, cv::Mat &kernel, 
+                   int i, int j, const int r_x, const int r_y);
+
 void Threshold(const cv::Mat &input, const double threshold_val, 
 			   cv::Mat &thresholded_output);
 

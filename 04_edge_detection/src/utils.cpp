@@ -1,5 +1,30 @@
 #include <include/utils.h>
 
+double Convolution(cv::Mat &input, cv::Mat &kernel, 
+                   int i, int j, const int r_x, const int r_y) {
+
+    // sum for matrix multiplication
+    double result = 0.0;
+    // for each kernel value
+    for(int m=-r_x; m<=r_x; m++) {
+		for(int n=-r_y; n<=r_y; n++ ) { 
+            // correct image and kernel indices
+            int input_i  = i + m + r_x;
+            int input_j  = j + n + r_y;
+            int kernel_i = m + r_x;
+            int kernel_j = n + r_y;
+            // get input and kernel values
+            double input_val  = (double) input.at<uchar>(input_i , input_j );
+			double kernel_val = kernel.at<double>(kernel_i, kernel_j);
+            // add product to current sum
+            result += input_val * kernel_val;
+        }
+    }
+    // return convolved input at (i,j)
+    return result;
+
+}
+
 void Threshold(const cv::Mat &input, const double threshold_val, 
 			   cv::Mat &thresholded_output) {
 	
