@@ -1,4 +1,11 @@
-#include <include/utils.h>
+
+#ifndef UTILS_H_
+#define UTILS_H_
+
+	// utils.h code
+
+#endif
+
 #include <include/gaussianBlur.h>
 #include <include/sobelEdges.h>
 #include <include/houghCircles.h>
@@ -71,38 +78,37 @@ int main(int argc, char* argv[]) {
 
 		// if hough circle transform
 		if (hough_circles) {
+
 			// set number of radii to apply
 			const int r_size = (max_r - min_r) / r_step;
+
 			// create vector of hough spaces
 			std::vector<cv::Mat> hough_space_circles;
+
 			// perform hough circle transform on magnitudes
 			GetHoughSpaceCircles(img_magnitude, r_size, min_r, max_r, 
 					  			 r_step, t_step, hough_space_circles);
+
 			// normalise and write each hough space image
-			for (int r=0; r<r_size; r++) NormaliseWrite(image_name, "hough_circles_radius", 
-														(min_r+(r*r_step)), hough_space_circles[r]);
-			// sum hough spaces
-			cv::Mat hough_space_circles_summed;
-			SumHoughSpaceCircles(hough_space_circles,
-							     hough_space_circles_summed);
-			// normalise and write summed hough space
-			NormaliseWrite(image_name, "hough_circles_summed", 
-						   0, hough_space_circles_summed);
+			// for (int r=0; r<r_size; r++) {
+			//	   NormaliseWrite(image_name, "hough_circles_radius", 
+			//                    min_r+(r*r_step), hough_space_circles[r]);
+			// }
 
-			// threshold houghspacesum at 60% of max
-			double minVal, maxVal; 
-			Point minLoc, maxLoc;
-			minMaxLoc(hough_space_circles_summed, &minVal, &maxVal, &minLoc, &maxLoc);
-			int threshold_houghspace_val = 0.6 * maxVal;
-			
-			// threshold hough space circle summantion
-			cv::Mat img_thresholded_hough_space_circles_summed;
-			Threshold(hough_space_circles_summed, threshold_houghspace_val, 
-					  img_thresholded_hough_space_circles_summed);
+			// // sum hough spaces and write
+			// cv::Mat hough_space_circles_summed;
+			// SumHoughSpaceCircles(hough_space_circles, hough_space_circles_summed);		 
+			// NormaliseWrite(image_name, "hough_circles_summed", 0, hough_space_circles_summed);
 
-			// normalise and write
-			NormaliseWrite(image_name, "thresholded_houghspace", threshold_houghspace_val, 
-						   img_thresholded_hough_space_circles_summed);
+			double hough_threshold = 100;
+
+			// find circle centres
+			std::vector<pos> hough_circle_locs;
+			findHoughCircles(hough_space_circles, hough_threshold,
+						  	 hough_circle_locs);
+
+			// draw circles over image
+			// drawCircles
 			
 		}
 	

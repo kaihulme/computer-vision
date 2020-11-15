@@ -75,3 +75,36 @@ void SumHoughSpaceCircles(std::vector<cv::Mat> &hough_space_circles,
     }
 
 }
+
+void findHoughCircles(std::vector<cv::Mat> &hough_space_circles, double threshold,
+					  std::vector<pos> &hough_circle_locs) {
+
+	int d_size = hough_space_circles.size();
+	int i_size = hough_space_circles[0].rows;
+	int j_size = hough_space_circles[0].cols;
+
+	// threshold each hough space
+	for (int d=0; d<d_size; d++) {
+		cv::Mat thresholded_space;
+		Threshold(hough_space_circles[d], threshold, thresholded_space);
+		hough_space_circles[d] = thresholded_space;
+	}
+
+	// local maxima search size
+	int local_size = 10;
+
+	// for each in hough space
+	for (int d=0; d<d_size; d++) {
+		for (int i=0; i<i_size; i++) {
+			for (int j=0; j<j_size; j++) {
+				// get local maxima at point
+				pos loc = FindLocalMaxima(hough_space_circles, d, i, j, local_size);
+				// add circle position if there is a local maxima
+				if (loc.r+loc.x+loc.y > 0) hough_circle_locs.push_back(loc);
+			}
+		}
+	}
+
+}
+
+

@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <string>
 #include <fstream>
+
 #include <opencv/cv.h>        
 #include <opencv/highgui.h>   
 #include <opencv/cxcore.h> 
+
 #include <include/utils.h>
 
 int ArgsHandler(int argc, char *argv[], 
