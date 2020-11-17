@@ -17,5 +17,8 @@ void GetHoughSpaceCircles(const cv::Mat &input, int r_size,
 void SumHoughSpaceCircles(std::vector<cv::Mat> &hough_space_circles,
 						  cv::Mat &hough_space_circles_summed);
 
-void findHoughCircles(std::vector<cv::Mat> &hough_space_circles, double threshold,
-					  std::vector<pos> &hough_circle_locs);
+void ThresholdHoughSpace(std::vector<cv::Mat> &hough_space, int threshold,
+						 std::vector<cv::Mat> &thresholded_hough_space);
+
+// void findHoughCircles(std::vector<cv::Mat> &hough_space_circles, double threshold,
+// 					  std::vector<pos_t> &hough_circle_locs);

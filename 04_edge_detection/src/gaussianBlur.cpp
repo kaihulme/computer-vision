@@ -23,12 +23,12 @@ void GaussianBlur(const cv::Mat &input, const int size,
 					   cv::BORDER_REPLICATE);
 	
 	// apply convolution to each pixel in image
-	for (int i=0; i<input.rows; i++) {	
-		for(int j=0; j<input.cols; j++) {
+	for (int y=0; y<input.rows; y++) {	
+		for(int x=0; x<input.cols; x++) {
 			// apply convolution to current pixel
-            double gaussian_pixel = Convolution(padded_input, gaussian_kernel, i, j, r_x, r_y);
+            double gaussian_pixel = Convolution(padded_input, gaussian_kernel, x, y, r_x, r_y);
 			// update the image with new pixel value
-			gaussian_output.at<double>(i, j) = gaussian_pixel;
+			gaussian_output.at<double>(y, x) = gaussian_pixel;
 		}
 	}
 

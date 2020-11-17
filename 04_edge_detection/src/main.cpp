@@ -1,14 +1,8 @@
-
-#ifndef UTILS_H_
-#define UTILS_H_
-
-	// utils.h code
-
-#endif
-
+#include <include/utils.h>
 #include <include/gaussianBlur.h>
 #include <include/sobelEdges.h>
 #include <include/houghCircles.h>
+#include <include/circleDetector.h>
 #include <include/argsHandler.h>
 
 int main(int argc, char* argv[]) {
@@ -33,6 +27,9 @@ int main(int argc, char* argv[]) {
 	                       r_step, t_step);
 	if (pass == -1) return -1;
 
+	// keep original copy
+	cv::Mat img_original = img_input;
+
 	// apply gaussian filter
 	if (gaussian) { 
 		cv::Mat img_gaussian;
@@ -48,6 +45,8 @@ int main(int argc, char* argv[]) {
         const int kernel_size = 3;
         cv::Mat img_dfdx, img_dfdy;
 		cv::Mat img_magnitude, img_direction;
+
+		std::cout << "\na\n" << std::endl;
 	
 		// apply sobel edge detection
 		SobelEdgeDetector(img_input, kernel_size, 
@@ -71,16 +70,18 @@ int main(int argc, char* argv[]) {
 			// threshold magnitude and write to file
 			Threshold(img_magnitude, threshold_val, 
 					  img_thresholded_magnitude);
-			NormaliseWrite(image_name, "thresholded", threshold_val, img_thresholded_magnitude);
+			NormaliseWrite(image_name, "thresholded", 
+						   threshold_val, img_thresholded_magnitude);
 			// set magnitude image to thresholded version
 			img_magnitude = img_thresholded_magnitude.clone();
+			std::cout << "\nGradient magnitude thresholding complete!" << std::endl;
 		}
 
 		// if hough circle transform
 		if (hough_circles) {
 
 			// set number of radii to apply
-			const int r_size = (max_r - min_r) / r_step;
+			const int r_size = (max_r - min_r) / r_step + 1;
 
 			// create vector of hough spaces
 			std::vector<cv::Mat> hough_space_circles;
@@ -90,29 +91,58 @@ int main(int argc, char* argv[]) {
 					  			 r_step, t_step, hough_space_circles);
 
 			// normalise and write each hough space image
-			// for (int r=0; r<r_size; r++) {
-			//	   NormaliseWrite(image_name, "hough_circles_radius", 
-			//                    min_r+(r*r_step), hough_space_circles[r]);
-			// }
+			for (int r=0; r<r_size; r++) {
+				NormaliseWrite(image_name, "hough_circles_radius", 
+							   min_r+(r*r_step), hough_space_circles[r]);
+			}
 
 			// // sum hough spaces and write
-			// cv::Mat hough_space_circles_summed;
-			// SumHoughSpaceCircles(hough_space_circles, hough_space_circles_summed);		 
-			// NormaliseWrite(image_name, "hough_circles_summed", 0, hough_space_circles_summed);
+			cv::Mat hough_space_sum;
+			SumHoughSpaceCircles(hough_space_circles, hough_space_sum);		 
+			NormaliseWrite(image_name, "hough_circles_summed", 0, hough_space_sum);
 
-			double hough_threshold = 100;
+			double hough_threshold = 10;
 
-			// find circle centres
-			std::vector<pos> hough_circle_locs;
-			findHoughCircles(hough_space_circles, hough_threshold,
-						  	 hough_circle_locs);
+			// threshold sum
+			cv::Mat threshold_hough_space_sum;
+			Threshold(hough_space_sum, hough_threshold, threshold_hough_space_sum);
+			NormaliseWrite(image_name, "hough_circles_summed_thresholded", 
+						   hough_threshold, threshold_hough_space_sum);
+
+			// std::cout << "\n\nhough_size_in_main " << hough_space_circles.size() << "\n\n" << std::endl;
+
+			std::vector<cv::Mat> thresholded_hough_space;
+			ThresholdHoughSpace(hough_space_circles, hough_threshold,
+								thresholded_hough_space);
+
+			// std::cout << "\nFinding circle centres..." << std::endl;
+
+			// //find circle centres
+			// std::vector<pos> hough_circle_locs;
+			// findHoughCircles(hough_space_circles, hough_threshold,
+			// 			  	 hough_circle_locs);
+			// std::cout << "\nDrawing circles..." << std::endl;
+
+			// std::cout << "\n\nt_hough_size_in_main " << thresholded_hough_space.size() << "\n\n" << std::endl;
+
+			// find circles
+			std::vector<circle_t> circles = FindCircles(thresholded_hough_space, 
+														threshold_hough_space_sum,
+														r_size, min_r, r_step);
+
+			std::cout << "\n-----------n" << std::endl;
+
 
 			// draw circles over image
-			// drawCircles
+			DrawCircles(img_original, circles, image_name);
 			
+			std::cout << "\n-----------" << std::endl;
+
 		}
 	
 	}
+
+	std::cout << "Rows (i): " << img_original.rows << ", Cols (j):" << img_original.cols << std::endl;
 
 	std::cout << "\nComplete!\n" << std::endl;
 	return 0;

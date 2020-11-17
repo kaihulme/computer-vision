@@ -20,6 +20,8 @@ void SobelEdgeDetector(const cv::Mat &input, const int size,
 									 { 0, 0, 0},
 									 { 1, 1, 1}};
 	
+	std::cout << "\nb\n" << std::endl;
+
 	// create opencv matrix from values
 	cv::Mat dfdx_kernel = cv::Mat(size, size, cv::DataType<double>::type, dfdx_kernel_vals);
     cv::Mat dfdy_kernel = cv::Mat(size, size, cv::DataType<double>::type, dfdy_kernel_vals);
@@ -33,24 +35,28 @@ void SobelEdgeDetector(const cv::Mat &input, const int size,
 	cv::copyMakeBorder(input, padded_input, 
 					   r_x, r_x, r_y, r_y,
 					   cv::BORDER_REPLICATE);
+
+	std::cout << "\nc\n" << std::endl;
 	
 	// apply convolution to each pixel in image
-	for (int i=0; i<input.rows; i++) {	
-		for(int j=0; j<input.cols; j++) {
+	for(int y=0; y<input.rows; y++) {
+		for (int x=0; x<input.cols; x++) {	
             // apply dfdx and dfdy kernel convolutions to current pixel
-			double dfdx_pixel = Convolution(padded_input, dfdx_kernel, i, j, r_x, r_y);
-			double dfdy_pixel = Convolution(padded_input, dfdy_kernel, i, j, r_x, r_y);
+			double dfdx_pixel = Convolution(padded_input, dfdx_kernel, x, y, r_x, r_y);
+			double dfdy_pixel = Convolution(padded_input, dfdy_kernel, x, y, r_x, r_y);
 	        // magnitude: ∇|f(x,y)| = sqrt( (df/dx)^2 + (df/dy)^2 )
 			// direction: φ = arctan( (df/dy) / (df/dx) )
             double magnitude_pixel = sqrt((dfdx_pixel*dfdx_pixel) + (dfdy_pixel*dfdy_pixel));
 			double direction_pixel = atan2(dfdy_pixel, dfdx_pixel);	
 			// update the image with new pixel value
-			dfdx_output.at<double>(i, j)      = dfdx_pixel;
-			dfdy_output.at<double>(i, j)      = dfdy_pixel;
-			magnitude_output.at<double>(i, j) = magnitude_pixel;
-			direction_output.at<double>(i, j) = direction_pixel;
+			dfdx_output.at<double>(y, x)      = dfdx_pixel;
+			dfdy_output.at<double>(y, x)      = dfdy_pixel;
+			magnitude_output.at<double>(y, x) = magnitude_pixel;
+			direction_output.at<double>(y, x) = direction_pixel;
 		}
 	}
+
+	std::cout << "\nd\n" << std::endl;
 
 	std::cout << "\nSobel edge detection complete!" << std::endl;
 }
