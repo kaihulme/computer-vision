@@ -8,24 +8,24 @@ std::vector<circle_t> FindCircles(std::vector<cv::Mat> &input,
 	// create vector of circles
 	std::vector<circle_t> circles_output;
 
-	std::cout << "\n--------\n\nStarting circle detection" << std::endl;
+	// std::cout << "\n--------\n\nStarting circle detection" << std::endl;
 
 	// get circle centres from summed hough space 
 	std::vector<pos_t> circle_locs = GetCircleLocs(hough_space_sum);
 
 	int c = 0;
-	int c_size = circle_locs.size();
+	// int c_size = circle_locs.size();
 
-	std::cout << "\n-----------\n" << std::endl;
-	std::cout << "c_size : " << c_size << ", r_size : " 
-			  << r_size << std::endl;
+	// std::cout << "\n-----------\n" << std::endl;
+	// std::cout << "c_size : " << c_size << ", r_size : " 
+	// 		  << r_size << std::endl;
 
 	for (pos_t &circle_loc : circle_locs) {
 
-		std::cout << "\n-----------\n" << std::endl;
-		std::cout << "Finding radius for circle "<< c << ", at: (" 
-				  << circle_loc.x << ", " << circle_loc.y << ")\n" 
-				  << std::endl;
+		// std::cout << "\n-----------\n" << std::endl;
+		// std::cout << "Finding radius for circle "<< c << ", at: (" 
+		// 		  << circle_loc.x << ", " << circle_loc.y << ")\n" 
+		// 		  << std::endl;
 
 		// best radius and position counter
 		double max_r = 0.0;
@@ -38,9 +38,9 @@ std::vector<circle_t> FindCircles(std::vector<cv::Mat> &input,
 		// for (int r=0; r<r_size; r++) {
 		for (cv::Mat &space : input) {
 
-			std::cout << "radius: " << min_r+r_step*r_pos << ", weight = " 
-			          << space.at<double>(circle_loc.y, circle_loc.x) 
-					  << std::endl;
+			// std::cout << "radius: " << min_r+r_step*r_pos << ", weight = " 
+			//           << space.at<double>(circle_loc.y, circle_loc.x) 
+			// 		  << std::endl;
 
 			// get current radius
 			double curr_r = space.at<double>(circle_loc.y, circle_loc.x);
@@ -59,7 +59,7 @@ std::vector<circle_t> FindCircles(std::vector<cv::Mat> &input,
 		// set radius
 		int circle_radius = min_r + r_step*r_pos;
 
-		std::cout << "\nCircle " << c << ": radius = " << circle_radius << std::endl;
+		// std::cout << "\nCircle " << c << ": radius = " << circle_radius << std::endl;
 		
 		// create circle
 		circle_t circle = {circle_locs[c], circle_radius};
@@ -103,7 +103,7 @@ std::vector<pos_t> GetCircleLocs(cv::Mat input) {
 
 				// find local max then remove region
 				int border = 5;
-				int region_size = 10;
+				int region_size = 25;
 				pos_t circle_pos = LocalMax(input, x, y, border, region_size);
 
 				// pos_t circle_pos = GetBestNeighbour(img, pos, curr);
@@ -115,15 +115,15 @@ std::vector<pos_t> GetCircleLocs(cv::Mat input) {
 				// add weighed location to vector
 				weighted_locs.push_back(weighted_loc);
 
-				std::cout << "\nfor (" << x << ", " << y << ") :" 
-				          << "found circle centre at (" << circle_pos.x  
-						<< ", " << circle_pos.y << ")" << std::endl;
+				// std::cout << "\nfor (" << x << ", " << y << ") :" 
+				//           << "found circle centre at (" << circle_pos.x  
+				// 		<< ", " << circle_pos.y << ")" << std::endl;
 
 				c++;
 			
 			}
 
-			std::cout << "\npixel: " << x << ", " << y << std::endl;
+			// std::cout << "\npixel: " << x << ", " << y << std::endl;
 			
 		}
 	}

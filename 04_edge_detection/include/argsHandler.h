@@ -14,6 +14,7 @@ int ArgsHandler(int argc, char *argv[],
                 bool &threshold, bool &gaussian,
 	            int &gaussian_val, int &threshold_val,
 	            int &min_r, int &max_r,
-	            int &r_step, int &t_step);
+	            int &r_step, int &t_step,
+                int &threshold_h);
 
 void ArgsHelper();

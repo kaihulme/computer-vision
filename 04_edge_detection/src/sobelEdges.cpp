@@ -20,8 +20,6 @@ void SobelEdgeDetector(const cv::Mat &input, const int size,
 									 { 0, 0, 0},
 									 { 1, 1, 1}};
 	
-	std::cout << "\nb\n" << std::endl;
-
 	// create opencv matrix from values
 	cv::Mat dfdx_kernel = cv::Mat(size, size, cv::DataType<double>::type, dfdx_kernel_vals);
     cv::Mat dfdy_kernel = cv::Mat(size, size, cv::DataType<double>::type, dfdy_kernel_vals);
@@ -35,8 +33,6 @@ void SobelEdgeDetector(const cv::Mat &input, const int size,
 	cv::copyMakeBorder(input, padded_input, 
 					   r_x, r_x, r_y, r_y,
 					   cv::BORDER_REPLICATE);
-
-	std::cout << "\nc\n" << std::endl;
 	
 	// apply convolution to each pixel in image
 	for(int y=0; y<input.rows; y++) {
@@ -55,8 +51,6 @@ void SobelEdgeDetector(const cv::Mat &input, const int size,
 			direction_output.at<double>(y, x) = direction_pixel;
 		}
 	}
-
-	std::cout << "\nd\n" << std::endl;
 
 	std::cout << "\nSobel edge detection complete!" << std::endl;
 }

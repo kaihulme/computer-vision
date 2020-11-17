@@ -6,7 +6,8 @@ int ArgsHandler(int argc, char *argv[],
                 bool &threshold, bool &gaussian,
 	            int &gaussian_val, int &threshold_val,
 	            int &min_r, int &max_r,
-	            int &r_step, int &t_step) {
+	            int &r_step, int &t_step,
+				int &threshold_h) {
 
     // set default values
     sobel = false; hough_circles = false;
@@ -14,6 +15,7 @@ int ArgsHandler(int argc, char *argv[],
 	gaussian_val = 3; threshold_val = 100;
 	min_r = 5; max_r = 50; 
     r_step = 1; t_step = 1;
+	threshold_h = 10;
 
     // check arg count
 	if (argc < 2)  { 
@@ -58,10 +60,11 @@ int ArgsHandler(int argc, char *argv[],
 		// if -h [x][y][z] apply hough transform circles with radii x->y step z
 		else if (!strcmp(argv[i], "-h") && !hough_circles) { 
 			try {
-				min_r  = std::stoi(argv[i+1]); i++;
-				max_r  = std::stoi(argv[i+1]); i++;
-				r_step = std::stoi(argv[i+1]); i++;
-				t_step = std::stoi(argv[i+1]); i++;
+				min_r  		= std::stoi(argv[i+1]); i++;
+				max_r  		= std::stoi(argv[i+1]); i++;
+				r_step 		= std::stoi(argv[i+1]); i++;
+				t_step 		= std::stoi(argv[i+1]); i++;
+				threshold_h = std::stoi(argv[i+1]); i++;
 			}
 			catch (std::exception const &e) {}
 			hough_circles = true;

@@ -127,18 +127,11 @@ void Threshold(const cv::Mat &input, const double threshold_val,
 
 // finds a max in region (x,y)->(x+r,y+r) with border
 // removes region once max is found to remove duplicates
-// pos_t LocalMax(cv::Mat &space, int x, int y, int border,
-// 			   int region_size) {
-		 	//   cv::Mat &space_wo_region) {
-
 pos_t LocalMax(cv::Mat &space, int i, int j, int border,
 			   int region_size) {
 
 	int x_max = space.cols;
 	int y_max = space.rows;
-
-	// int i_max = space.rows;
-	// int j_max = space.cols;
 
 	double max 	   = 0;
 	pos_t  max_pos = {0,0};
@@ -151,7 +144,7 @@ pos_t LocalMax(cv::Mat &space, int i, int j, int border,
 				// get val at (i,j)
 				double val = space.at<double>(y, x);
 
-				std::cout << "(" << x << ", " << y << ") : " << val << std::endl;
+				// std::cout << "(" << x << ", " << y << ") : " << val << std::endl;
 
 				if (val > max) { 
 
@@ -169,36 +162,10 @@ pos_t LocalMax(cv::Mat &space, int i, int j, int border,
 		}
 	}
 
-	// for (int i=x-region_size; i<x+region_size; i++) {
-		// for (int j=y-region_size/2; j<y+region_size; j++) {
-
-	// 		if (i>=0 && i<i_max && j>=0 && j<j_max) {
-
-	// 			// get val at (i,j)
-	// 			double val = space.at<double>(i,j);
-
-	// 			std::cout << "(" << i << ", " << j << ") : " << val << std::endl;
-
-	// 			if (val > max) { 
-
-	// 				// std::cout << "\ni : " << i << ", j : " << j << std::endl;
-	// 				// std::cout << "max: " << val << " > " << max << std::endl;
-
-	// 				// if highest set new max
-	// 				max     = val; 
-	// 				max_pos = {i,j};
-					
-	// 			}
-	// 			// else std::cout << "not max: " << val << " <= " << max << std::endl;
-	// 		}
-
-	// 	}
+	// if (max > 0) {
+	// 	std::cout << "\nMAX at : " << "(" << max_pos.x << ", " 
+	// 	   		  << max_pos.y << ") = " << max << std::endl;
 	// }
-
-	if (max > 0) {
-		std::cout << "\nMAX at : " << "(" << max_pos.x << ", " 
-		   		  << max_pos.y << ") = " << max << std::endl;
-	}
 
 	for (int y=j-region_size; y<j+region_size; y++) {	
 		for(int x=i-region_size; x<i+region_size; x++) {
@@ -208,25 +175,6 @@ pos_t LocalMax(cv::Mat &space, int i, int j, int border,
 			}
 		}
 	}
-
-	// for (int i=x-region_size; i<x+region_size; i++) {
-	// 	for (int j=y-region_size/2; j<y+region_size; j++) {
-	// 		if (i>=0 && i<i_max && j>=0 && j<j_max) {
-	// 			// remove region from space
-	// 			space.at<double>(i,j) = 0;
-	// 		}
-	// 	}
-	// }
-
-	// // TEMP delete all other circles
-	// for (int i=0; i<i_max; i++) {
-	// 	for (int j=0; j<j_max; j++) {
-	// 		if (i>=0 && i<i_max && j>=0 && j<j_max) {
-	// 			// remove region from space
-	// 			space.at<double>(i,j) = 0;
-	// 		}
-	// 	}
-	// }
 
 	return max_pos;
 
@@ -248,21 +196,20 @@ void DrawCircles(cv::Mat &image, std::vector<circle_t> &circles,
 		// get circle centre position
 		cv::Point point = cv::Point(circle.pos.x, circle.pos.y);
 
-		std::cout << "drawing circle - radius : " << radius 
-		          << ", centre : (" << circle.pos.x 
-		          << ", " << circle.pos.y << ")" << std::endl;
-
-		
-		radius = 5;
+		// std::cout << "drawing circle - radius : " << radius 
+		//           << ", centre : (" << circle.pos.x 
+		//           << ", " << circle.pos.y << ")" << std::endl;
 		
 		// draw circle
-		cv::circle(out_image, point, radius, cvScalar(124, 200, 73), 2);
+		cv::circle(image, point, radius, cvScalar(124, 200, 73), 2);
+		// mark centre
+		cv::circle(image, point, 4, cvScalar(50, 50, 240), -1);
 
 	}
 
 	// NormaliseWrite(image_name, "CIRCLES", 0, out_image);
-
-	imwrite("out/COINSWITHCIRCLS.jpg", out_image);
+	// imwrite("out/COINSWITHCIRCLS.jpg", out_image);
+	imwrite("out/COINSWITHCIRCLS.jpg", image);
 
 }
 
