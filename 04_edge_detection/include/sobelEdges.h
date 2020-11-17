@@ -1,13 +1,17 @@
-#include <stdio.h>
 #include <string>
 #include <iostream>
 
+#include <stdio.h>
 #include <opencv/cv.h>        
-#include <opencv/highgui.h>   
 #include <opencv/cxcore.h>
+#include <opencv/highgui.h>   
 
 using namespace cv;
 
-void SobelEdgeDetector(const cv::Mat &input, const int size, 
-					   cv::Mat &dfdx_output, cv::Mat &dfdy_output,
-					   cv::Mat &maginitude_output, cv::Mat &direction_output);
+// apply sobel edge detection
+void SobelEdgeDetector(const cv::Mat &input, 				// image to apply edge detection to
+					   const int     size, 					// size of sobel kernel
+					   cv::Mat       &dfdx_output, 			// horizontal gradients output
+					   cv::Mat       &dfdy_output,			// vertical gradients output
+					   cv::Mat       &magnitude_output, 	// magnitude of gradients output
+					   cv::Mat       &direction_output);	// direction of gradients output

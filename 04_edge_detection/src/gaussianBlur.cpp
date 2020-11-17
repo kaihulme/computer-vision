@@ -1,11 +1,12 @@
 #include <include/gaussianBlur.h>
 #include <include/utils.h>
 
-void GaussianBlur(const cv::Mat &input, const int size, 
-				  cv::Mat &gaussian_output) {
+void GaussianBlur(const cv::Mat &input, 			// input image to blur
+				  const int 	size,				// gaussian kernel size
+	              cv::Mat 		&output) {  		// blurred output
 	
 	// intialise the output using the input
-	gaussian_output.create(input.size(), cv::DataType<double>::type);
+	output.create(input.size(), cv::DataType<double>::type);
 	
 	// create the gaussian kernel
 	cv::Mat kX = cv::getGaussianKernel(size, -1);
@@ -28,7 +29,7 @@ void GaussianBlur(const cv::Mat &input, const int size,
 			// apply convolution to current pixel
             double gaussian_pixel = Convolution(padded_input, gaussian_kernel, x, y, r_x, r_y);
 			// update the image with new pixel value
-			gaussian_output.at<double>(y, x) = gaussian_pixel;
+			output.at<double>(y, x) = gaussian_pixel;
 		}
 	}
 

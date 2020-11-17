@@ -1,12 +1,14 @@
-#include <stdio.h>
 #include <string>
 #include <iostream>
 
+#include <stdio.h>
 #include <opencv/cv.h>        
-#include <opencv/highgui.h>   
 #include <opencv/cxcore.h> 
+#include <opencv/highgui.h>   
 
 using namespace cv;
 
-void GaussianBlur(const cv::Mat &input, const int size,
-	              cv::Mat &gaussian_output);
+// apply gaussian blur
+void GaussianBlur(const cv::Mat &input, 			// input image to blur
+				  const int 	size,				// gaussian kernel size
+	              cv::Mat 		&output);			// blurred output

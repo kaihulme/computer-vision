@@ -1,13 +1,21 @@
 #include <include/argsHandler.h>
 
-int ArgsHandler(int argc, char *argv[], 
-                cv::Mat &image, string &image_name,
-                bool &sobel, bool &hough_circles, 
-                bool &threshold, bool &gaussian,
-	            int &gaussian_val, int &threshold_val,
-	            int &min_r, int &max_r,
-	            int &r_step, int &t_step,
-				int &threshold_h) {
+// handles command line arguments
+int ArgsHandler(int     argc,               // no. of arguments
+                char    *argv[],            // arguments
+                cv::Mat &image,             // image
+                string  &image_name,        // image name
+                bool    &sobel,             // whether or not to apply sobel edge detection
+                bool    &hough_circles,     // whether or not to apply hough transform (circles)
+                bool    &threshold,         // whether or not to apply magnitude thresholding
+                bool    &gaussian,          // whether or not to apply gaussian smoothing
+	            int     &gaussian_val,      // gaussian kernel size
+                int     &threshold_val,     // threshold for sobel gradient magnitude
+	            int     &min_r,             // min radius for hough circles
+                int     &max_r,             // max radius for hough circles
+	            int     &r_step,            // radius stepping for hough circles
+                int     &t_step,            // theta stepping for hough circles
+                int     &threshold_h){      // hough space threshold
 
     // set default values
     sobel = false; hough_circles = false;
@@ -68,7 +76,6 @@ int ArgsHandler(int argc, char *argv[],
 			}
 			catch (std::exception const &e) {}
 			hough_circles = true;
-			// i+=4;
 		}
 
 		// if -g [x] apply gaussian blur with specified kernel size
@@ -86,17 +93,21 @@ int ArgsHandler(int argc, char *argv[],
 		}
 		
 		// unrecognised argument
-		else { std::cout << "\nError: check your flags! ('?' for help)\n" << std::endl; return -1; }
+		else { 
+			std::cout << "\nError: check your flags! ('?' for help)\n" << std::endl; 
+			return -1; }
+
 	}
 	
     // cannot threshold magnitudes without running sobel edge detector first
 	if (threshold && !sobel) { 
-        printf("\nError: magnitude threshold requires sobel edge detection (-s)!\n\n"); 
+        std::cout << "\nError: magnitude threshold requires sobel edge detection (-s)!\n" << std::endl; 
         return -1; 
     }
+
     // cannot calculate hough space without magnitudes from sobel edge detection
 	else if (hough_circles && !sobel) { 
-        printf("\nError: hough transform requires sobel edge detection (-s)!\n\n");     
+        std::cout << "\nError: hough transform requires sobel edge detection (-s)!\n" << std::endl;     
         return -1; 
     }
 
@@ -104,6 +115,7 @@ int ArgsHandler(int argc, char *argv[],
     return 1;
 }
 
+// writes contents of args_help.txt
 void ArgsHelper() {
 
     // open file
