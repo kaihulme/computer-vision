@@ -13,17 +13,17 @@ int ArgsHandler(int     argc,               // no. of arguments
                 char    *argv[],            // arguments
                 cv::Mat &image,             // image
                 string  &image_name,        // image name
-                bool    &sobel,             // whether or not to apply sobel edge detection
-                bool    &hough_circles,     // whether or not to apply hough transform (circles)
-                bool    &threshold,         // whether or not to apply magnitude thresholding
-                bool    &gaussian,          // whether or not to apply gaussian smoothing
-	            int     &gaussian_val,      // gaussian kernel size
-                int     &threshold_val,     // threshold for sobel gradient magnitude
-	            int     &min_r,             // min radius for hough circles
-                int     &max_r,             // max radius for hough circles
+                bool    &a_sobel,           // whether or not to apply sobel edge detection
+                bool    &a_hough_transform, // whether or not to apply hough transform (circles)
+                bool    &a_m_threshold,     // whether or not to apply magnitude thresholding
+                bool    &a_gaussian,        // whether or not to apply gaussian smoothing
+	            int     &gaussian_size,     // gaussian kernel size
+                int     &m_threshold,       // threshold for sobel gradient magnitude
+                int     &h_threshold,       // hough space threshold
+	            int     &r_min,             // min radius for hough circles
+                int     &r_max,             // max radius for hough circles
 	            int     &r_step,            // radius stepping for hough circles
-                int     &t_step,            // theta stepping for hough circles
-                int     &threshold_h);      // hough space threshold
-
+                int     &t_step);           // theta stepping for hough circles
+                
 // writes contents of args_help.txt
 void ArgsHelper();

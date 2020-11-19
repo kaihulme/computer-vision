@@ -14,7 +14,6 @@ std::vector<circle_t> FindCircles(std::vector<cv::Mat> &input,      // hough spa
 	std::vector<pos_t> circle_locs = GetCircleLocs(hough_space_sum);
 
 	// for each circle
-	int c = 0;
 	for (pos_t &circle_loc : circle_locs) {
 
 		// best radius and position counter
@@ -41,11 +40,10 @@ std::vector<circle_t> FindCircles(std::vector<cv::Mat> &input,      // hough spa
 
 		// set radius and create circle
 		int circle_radius = min_r + r_step*r_pos;
-		circle_t circle = {circle_locs[c], circle_radius};
+		circle_t circle = {circle_loc, circle_radius};
 
 		// add circle to vector and increment circle position
 		circles_output.push_back(circle);
-		c++;
 
 	}
 

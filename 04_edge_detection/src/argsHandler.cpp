@@ -5,25 +5,30 @@ int ArgsHandler(int     argc,               // no. of arguments
                 char    *argv[],            // arguments
                 cv::Mat &image,             // image
                 string  &image_name,        // image name
-                bool    &sobel,             // whether or not to apply sobel edge detection
-                bool    &hough_circles,     // whether or not to apply hough transform (circles)
-                bool    &threshold,         // whether or not to apply magnitude thresholding
-                bool    &gaussian,          // whether or not to apply gaussian smoothing
-	            int     &gaussian_val,      // gaussian kernel size
-                int     &threshold_val,     // threshold for sobel gradient magnitude
-	            int     &min_r,             // min radius for hough circles
-                int     &max_r,             // max radius for hough circles
+                bool    &a_sobel,           // whether or not to apply sobel edge detection
+                bool    &a_hough,           // whether or not to apply hough transform (circles)
+                bool    &a_m_threshold,     // whether or not to apply magnitude thresholding
+                bool    &a_gaussian,        // whether or not to apply gaussian smoothing
+	            int     &gaussian_size,     // gaussian kernel size
+                int     &m_threshold,       // threshold for sobel gradient magnitude
+                int     &h_threshold,       // hough space threshold
+	            int     &r_min,             // min radius for hough circles
+                int     &r_max,             // max radius for hough circles
 	            int     &r_step,            // radius stepping for hough circles
-                int     &t_step,            // theta stepping for hough circles
-                int     &threshold_h){      // hough space threshold
+                int     &t_step) {          // theta stepping for hough circles
 
     // set default values
-    sobel = false; hough_circles = false;
-    threshold = false; gaussian = false;
-	gaussian_val = 3; threshold_val = 100;
-	min_r = 5; max_r = 50; 
-    r_step = 1; t_step = 1;
-	threshold_h = 10;
+    a_sobel           = false; 
+	a_hough           = false;
+    a_m_threshold     = false; 
+	a_gaussian        = false;
+	gaussian_size     = 20; 
+	m_threshold       = 30;
+	r_min             = 30; 
+	r_max             = 50; 
+    r_step            = 5; 
+	t_step            = 20;
+	h_threshold       = 10;
 
     // check arg count
 	if (argc < 2)  { 
@@ -63,33 +68,31 @@ int ArgsHandler(int     argc,               // no. of arguments
 	for (int i=2; i<argc; i++) {
 
 		// if -s apply sobel edge detection
-		if (!strcmp(argv[i], "-s") && !sobel) sobel = true;
+		if (!strcmp(argv[i], "-s") && !a_sobel) {
+			try { m_threshold = std::stoi(argv[i+1]); a_m_threshold=true; i++; }
+			catch (std::exception const &e) {}
+			a_sobel = true;
+		}
+			//sobel = true;
 
 		// if -h [x][y][z] apply hough transform circles with radii x->y step z
-		else if (!strcmp(argv[i], "-h") && !hough_circles) { 
+		else if (!strcmp(argv[i], "-h") && !a_hough) { 
 			try {
-				min_r  		= std::stoi(argv[i+1]); i++;
-				max_r  		= std::stoi(argv[i+1]); i++;
+				r_min  		= std::stoi(argv[i+1]); i++;
+				r_max  		= std::stoi(argv[i+1]); i++;
 				r_step 		= std::stoi(argv[i+1]); i++;
 				t_step 		= std::stoi(argv[i+1]); i++;
-				threshold_h = std::stoi(argv[i+1]); i++;
+				h_threshold = std::stoi(argv[i+1]); i++;
 			}
 			catch (std::exception const &e) {}
-			hough_circles = true;
+			a_hough = true;
 		}
 
 		// if -g [x] apply gaussian blur with specified kernel size
-		else if (!strcmp(argv[i], "-g") && !gaussian)  {
-			try { gaussian_val = std::stoi(argv[i+1]); i++; }
+		else if (!strcmp(argv[i], "-g") && !a_gaussian)  {
+			try { gaussian_size = std::stoi(argv[i+1]); i++; }
 			catch (std::exception const &e) {}
-			gaussian = true;
-		}
-
-		// if -t [x] apply thresholding to gradient magnitudes at specified value
-		else if (!strcmp(argv[i], "-t") && !threshold) {
-			try { threshold_val = std::stoi(argv[i+1]); i++; }
-			catch (std::exception const &e) {}
-			threshold = true;
+			a_gaussian = true;
 		}
 		
 		// unrecognised argument
@@ -98,15 +101,9 @@ int ArgsHandler(int     argc,               // no. of arguments
 			return -1; }
 
 	}
-	
-    // cannot threshold magnitudes without running sobel edge detector first
-	if (threshold && !sobel) { 
-        std::cout << "\nError: magnitude threshold requires sobel edge detection (-s)!\n" << std::endl; 
-        return -1; 
-    }
 
     // cannot calculate hough space without magnitudes from sobel edge detection
-	else if (hough_circles && !sobel) { 
+	if (a_hough && !a_sobel) { 
         std::cout << "\nError: hough transform requires sobel edge detection (-s)!\n" << std::endl;     
         return -1; 
     }

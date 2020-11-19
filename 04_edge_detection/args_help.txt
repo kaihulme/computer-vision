@@ -11,12 +11,17 @@ ARGUMENT HELPER
     - applying a blur will remove some noise and improve performance of the edge detector
     - this will output [file]_gaussian to /out
 
-- (-s) will apply the sobel edge detection:
+- (-s ([x])) will apply the sobel edge detection:
     -this will output the following to /out
         - [file]_dfdx (horizontal gradients)
         - [file]_dfdy (vertical gradients)
         - [file]_magnitude (magnitude of gradients: ∇|f(x,y)| = sqrt( (df/dx)^2 + (df/dy)^2 ) )
         - [file]_direction (angle of gradients: φ = arctan( (df/dy) / (df/dx) ) )
+    - speciying [x] will threshold the gradient magnitude    
+        - this will output [file]_thresholded to /out
+        - x is the value to threshold at: lower will be set to black, equal to or higher to white
+            - not specifying x will default to 100
+        - check the output image and adjust x to highlight edges for improved hough transform
 
 - (-h [min][max][r_step][t_step]) will apply hough transform circles:
     - min specifies the minimum radius for the hough transform circles
@@ -31,9 +36,3 @@ ARGUMENT HELPER
     - t_step specifies the step between the angles the hough transform circles are drawn
         - not specifying t_step will default to 1
         - increasing should improve processing time at the cost of accuracy
-
-- (-t [x]) will threshold the values of the gradient magnitudes:
-    - this will output [file]_thresholded to /out
-    - x is the value to threshold at: lower will be set to black, equal to or higher to white
-        - not specifying x will default to 100
-    - check the output image and adjust x to highlight edges for improved hough transform
