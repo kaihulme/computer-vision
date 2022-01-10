@@ -1,6 +1,6 @@
 # computer-vision
 
-Computer vision using C++ and the OpenCV library.
+Implementation of traditional computer vision techniques using C++ and the OpenCV library.
 
 ## requirements
 - Requires OpenCV and make.
@@ -9,15 +9,10 @@ Computer vision using C++ and the OpenCV library.
   - please change `$LIBS` in the makefile to point to your OpenCV libraries.
 
 ### build and run
-- Run `make` from within the correct lab to compile.
-- Arguments for each program vary.
-- Images for manipulation must be in `/resources`.
-- Output images will be written to `/out`.
-
-### edge detection
-1. Open directory `04_edge_detection`.
-1. Run `make` to compile.
-1. `./main ?` will give argument help.
+- Run `make` to compile component.
+- Arguments for each component below.
+- Place target images in `/resources`.
+- Find output in `/out`.
 
 #### argument help:
 - the first argument should be the file to be transformed
